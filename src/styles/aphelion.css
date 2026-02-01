@@ -1,0 +1,808 @@
+/**
+ * Aphelion - Styles
+ *
+ * Core CSS styles for Aphelion components.
+ * This is a reimplementation of math rendering, not a derivative of MathQuill.
+ */
+
+/* ============================================
+   Container & Root
+   ============================================ */
+
+.aphelion-container {
+  display: inline-block;
+  position: relative;
+  font-family: 'Times New Roman', Symbola, serif;
+  font-size: 1em;
+  line-height: 1;
+  vertical-align: middle;
+  color: #333;
+}
+
+/* Dark mode support */
+.aphelion-container.aphelion-dark-mode {
+  color: #e0e0e0;
+}
+
+.aphelion-math-field {
+  display: inline-block;
+  min-width: 100px;
+  min-height: 1.5em;
+  padding: 0.25em 0.5em;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background: white;
+  color: #333;
+  cursor: text;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease,
+    background-color 0.15s ease;
+}
+
+.aphelion-math-field:hover {
+  border-color: #999;
+}
+
+.aphelion-math-field.aphelion-focused,
+.aphelion-container.aphelion-focused .aphelion-math-field {
+  border-color: #4a90d9;
+  box-shadow: 0 0 0 3px rgba(74, 144, 217, 0.2);
+}
+
+/* Dark mode styles */
+.aphelion-container.aphelion-dark-mode .aphelion-math-field {
+  background: #1a1a2e;
+  color: #e0e0e0;
+  border-color: #444;
+}
+
+.aphelion-container.aphelion-dark-mode .aphelion-math-field:hover {
+  border-color: #666;
+}
+
+.aphelion-container.aphelion-dark-mode .aphelion-math-field.aphelion-focused,
+.aphelion-container.aphelion-dark-mode .aphelion-math-field:focus {
+  border-color: #5fa3e0;
+  box-shadow: 0 0 0 3px rgba(95, 163, 224, 0.2);
+}
+
+.aphelion-static-math {
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.aphelion-root-block {
+  display: inline-block;
+  position: relative;
+  white-space: nowrap;
+}
+
+.aphelion-inner-block {
+  display: inline-block;
+  position: relative;
+  white-space: nowrap;
+}
+
+.aphelion-empty {
+  min-width: 0.6em;
+  min-height: 1em;
+  background: rgba(100, 150, 220, 0.15);
+  border: 1px solid rgba(100, 150, 220, 0.4);
+  border-radius: 2px;
+  margin: 0 1px;
+}
+
+/* ============================================
+   Cursor
+   ============================================ */
+
+.aphelion-cursor {
+  display: inline-block;
+  width: 0;
+  height: 1.2em;
+  margin-left: -1px;
+  margin-right: -1px;
+  border-left: 2px solid #333;
+  vertical-align: text-bottom;
+}
+
+.aphelion-cursor.aphelion-blink {
+  animation: aphelion-blink 1s step-end infinite;
+}
+
+@keyframes aphelion-blink {
+  0%,
+  50% {
+    border-color: #333;
+  }
+  50.01%,
+  100% {
+    border-color: transparent;
+  }
+}
+
+/* ============================================
+   Hidden Textarea
+   ============================================ */
+
+.aphelion-textarea {
+  position: absolute;
+  clip: rect(1px, 1px, 1px, 1px);
+  overflow: hidden;
+  width: 1px;
+  height: 1px;
+}
+
+.aphelion-textarea textarea {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  border: none;
+  outline: none;
+  resize: none;
+  overflow: hidden;
+  opacity: 0;
+}
+
+/* ============================================
+   ARIA Live Region
+   ============================================ */
+
+.aphelion-aria-live {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}
+
+/* ============================================
+   Selection
+   ============================================ */
+
+.aphelion-selection {
+  background-color: #b4d5fe;
+}
+
+/* ============================================
+   Symbols
+   ============================================ */
+
+.aphelion-symbol {
+  display: inline-block;
+}
+
+.aphelion-variable {
+  font-style: italic;
+}
+
+.aphelion-digit {
+  font-style: normal;
+}
+
+.aphelion-operator {
+  padding: 0 0.1em;
+}
+
+.aphelion-binary-operator {
+  padding: 0 0.25em;
+}
+
+.aphelion-relation {
+  padding: 0 0.3em;
+}
+
+.aphelion-punctuation {
+  padding-right: 0.15em;
+}
+
+/* ============================================
+   Fraction
+   ============================================ */
+
+.aphelion-fraction {
+  display: inline-block;
+  vertical-align: middle;
+  text-align: center;
+}
+
+.aphelion-fraction-inner {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.aphelion-numerator {
+  display: block;
+  padding: 0 0.2em;
+  border-bottom: 1px solid currentColor;
+}
+
+.aphelion-denominator {
+  display: block;
+  padding: 0 0.2em;
+}
+
+.aphelion-fraction-line {
+  display: none;
+}
+
+.aphelion-dfrac {
+  font-size: 1.1em;
+}
+
+.aphelion-tfrac {
+  font-size: 0.8em;
+}
+
+/* ============================================
+   Square Root
+   ============================================ */
+
+.aphelion-sqrt {
+  display: inline-flex;
+  align-items: stretch;
+  vertical-align: middle;
+  position: relative;
+  white-space: nowrap;
+}
+
+.aphelion-sqrt-prefix {
+  font-size: 1.2em;
+  line-height: 1;
+  display: inline-block;
+  vertical-align: bottom;
+  margin-right: -0.05em;
+}
+
+.aphelion-sqrt-stem {
+  display: none;
+}
+
+.aphelion-sqrt-content {
+  display: inline-block;
+  padding: 0.15em 0.2em 0.05em 0.15em;
+  border-top: 1.5px solid currentColor;
+  min-width: 0.6em;
+  min-height: 1em;
+  vertical-align: bottom;
+}
+
+.aphelion-nthroot {
+  display: inline-flex;
+  align-items: flex-end;
+  white-space: nowrap;
+}
+
+.aphelion-nthroot-index {
+  font-size: 0.6em;
+  margin-right: -0.3em;
+  margin-bottom: 0.5em;
+  vertical-align: super;
+}
+
+/* ============================================
+   Subscript & Superscript
+   ============================================ */
+
+.aphelion-supsub {
+  text-align: left;
+  font-size: 90%;
+  vertical-align: -0.5em;
+  display: inline-block;
+}
+
+.aphelion-supsub.aphelion-sup-only {
+  vertical-align: 0.5em;
+}
+
+.aphelion-supsub.aphelion-sup-only > .aphelion-sup {
+  display: inline-block;
+  vertical-align: text-bottom;
+}
+
+.aphelion-sup {
+  display: block;
+  font-size: inherit;
+  line-height: 1;
+}
+
+.aphelion-sub {
+  display: block;
+  float: left;
+  font-size: inherit;
+  line-height: 1;
+}
+
+/* Inline layout for side-by-side */
+.aphelion-supsub.aphelion-inline {
+  display: inline-block;
+}
+
+.aphelion-supsub.aphelion-inline .aphelion-sup,
+.aphelion-supsub.aphelion-inline .aphelion-sub {
+  display: block;
+}
+
+/* ============================================
+   Accents (\vec, \bar, \hat, etc.)
+   ============================================ */
+
+.aphelion-accent {
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.aphelion-accent-wrapper {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.aphelion-accent-mark {
+  font-size: 0.8em;
+  line-height: 0.5;
+  margin-bottom: -0.2em;
+  height: 0.6em;
+}
+
+.aphelion-accent-content {
+  display: inline-block;
+  min-width: 0.5em;
+}
+
+/* ============================================
+   Text Modes (\text, \mathrm, etc.)
+   ============================================ */
+
+.aphelion-textmode {
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.aphelion-textmode-content {
+  display: inline-block;
+}
+
+.aphelion-text,
+.aphelion-textrm,
+.aphelion-mathrm {
+  font-style: normal;
+  font-family: inherit;
+}
+
+.aphelion-text-italic,
+.aphelion-mathit {
+  font-style: italic;
+}
+
+.aphelion-text-bold,
+.aphelion-mathbf {
+  font-weight: bold;
+  font-style: normal;
+}
+
+.aphelion-text-sans,
+.aphelion-mathsf {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-style: normal;
+}
+
+.aphelion-text-mono,
+.aphelion-mathtt {
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+  font-style: normal;
+}
+
+.aphelion-mathcal {
+  font-family: 'Lucida Calligraphy', cursive;
+  font-style: normal;
+}
+
+.aphelion-mathfrak {
+  font-family: 'UnifrakturMaguntia', 'Fraktur', serif;
+  font-style: normal;
+}
+
+.aphelion-mathbb {
+  font-weight: bold;
+  font-style: normal;
+  /* Double-struck letters would need special font */
+}
+
+.aphelion-mathscr {
+  font-family: 'Brush Script MT', cursive;
+  font-style: italic;
+}
+
+/* ============================================
+   Brackets
+   ============================================ */
+
+.aphelion-bracket {
+  display: inline-flex;
+  align-items: center;
+  vertical-align: middle;
+}
+
+.aphelion-bracket-open,
+.aphelion-bracket-close {
+  font-size: 1.2em;
+  transform-origin: center;
+}
+
+.aphelion-bracket-content {
+  padding: 0 0.1em;
+}
+
+.aphelion-scaled {
+  display: inline-block;
+}
+
+/* ============================================
+   Matrix
+   ============================================ */
+
+.aphelion-matrix {
+  display: inline-flex;
+  align-items: center;
+  vertical-align: middle;
+  gap: 0.1em;
+}
+
+.aphelion-matrix-bracket {
+  font-size: 1.8em;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  transform-origin: center;
+}
+
+.aphelion-matrix-bracket-l {
+  margin-right: 0.05em;
+}
+
+.aphelion-matrix-bracket-r {
+  margin-left: 0.05em;
+}
+
+.aphelion-matrix-grid {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 0.15em;
+}
+
+.aphelion-matrix-row {
+  display: flex;
+  gap: 0.3em;
+  justify-content: center;
+}
+
+.aphelion-matrix-cell {
+  display: inline-block;
+  min-width: 1em;
+  min-height: 0.9em;
+  text-align: center;
+  padding: 0.1em 0.2em;
+}
+
+.aphelion-matrix-cell .aphelion-root-block {
+  display: inline;
+  min-width: 0.8em;
+}
+
+.aphelion-matrix-cell.aphelion-empty,
+.aphelion-matrix-cell .aphelion-empty {
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 2px;
+}
+
+/* Scale brackets based on matrix size */
+.aphelion-matrix[data-rows='1'] .aphelion-matrix-bracket {
+  font-size: 1.2em;
+}
+.aphelion-matrix[data-rows='2'] .aphelion-matrix-bracket {
+  font-size: 1.8em;
+}
+.aphelion-matrix[data-rows='3'] .aphelion-matrix-bracket {
+  font-size: 2.4em;
+}
+.aphelion-matrix[data-rows='4'] .aphelion-matrix-bracket {
+  font-size: 3em;
+}
+.aphelion-matrix[data-rows='5'] .aphelion-matrix-bracket {
+  font-size: 3.6em;
+}
+
+/* ============================================
+   Operator Names
+   ============================================ */
+
+.aphelion-operator-name {
+  font-style: normal;
+  font-family: inherit;
+  padding: 0 0.2em;
+}
+
+/* ============================================
+   Text
+   ============================================ */
+
+.aphelion-text {
+  font-style: normal;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* ============================================
+   LaTeX Command Input
+   ============================================ */
+
+.aphelion-latex-command-input-wrapper {
+  display: inline-block;
+}
+
+.aphelion-latex-command-input {
+  display: inline-block;
+  border: 1px solid #90c;
+  border-radius: 2px;
+  padding: 0 0.2em;
+  background: rgba(153, 0, 204, 0.05);
+}
+
+.aphelion-latex-command-input.aphelion-hasCursor {
+  border-color: #4a90d9;
+  background: rgba(74, 144, 217, 0.05);
+}
+
+.aphelion-latex-command-backslash {
+  color: #90c;
+  font-weight: bold;
+}
+
+.aphelion-latex-command-name {
+  display: inline-block;
+  min-width: 0.5em;
+}
+
+.aphelion-latex-command-name .aphelion-root-block {
+  display: inline;
+  background: transparent;
+  min-width: 0;
+}
+
+.aphelion-latex-command-name .aphelion-empty {
+  background: transparent;
+  min-width: 0.5em;
+  display: inline-block;
+}
+
+/* ============================================
+   Large Operators
+   ============================================ */
+
+.aphelion-large-operator {
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.aphelion-operator-symbol {
+  font-size: 1.5em;
+  line-height: 1;
+}
+
+.aphelion-limits-container {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.aphelion-upper-limit,
+.aphelion-lower-limit {
+  font-size: 0.65em;
+  line-height: 1.2;
+}
+
+.aphelion-inline-limits {
+  display: inline-flex;
+  flex-direction: column;
+  vertical-align: middle;
+}
+
+/* ============================================
+   Placeholder
+   ============================================ */
+
+.aphelion-placeholder {
+  display: inline-block;
+  width: 0.6em;
+  height: 0.9em;
+  background: rgba(100, 150, 220, 0.15);
+  border: 1px dashed rgba(100, 150, 220, 0.5);
+  border-radius: 2px;
+  vertical-align: middle;
+}
+
+/* ============================================
+   Non-Leaf Nodes
+   ============================================ */
+
+.aphelion-non-leaf {
+  padding: 0.1em;
+}
+
+.aphelion-non-leaf:hover {
+  background-color: rgba(0, 0, 0, 0.02);
+}
+
+/* ============================================
+   Toolbar
+   ============================================ */
+
+.aphelion-toolbar {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  background: #f5f5f5;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  margin-bottom: 8px;
+}
+
+.aphelion-toolbar-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background: white;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.aphelion-toolbar-button:hover {
+  background-color: #e8e8e8;
+  border-color: #999;
+}
+
+.aphelion-toolbar-button:active {
+  background-color: #ddd;
+}
+
+/* ============================================
+   Dark Mode Support
+   ============================================ */
+
+@media (prefers-color-scheme: dark) {
+  .aphelion-math-field:hover {
+    border-color: #777;
+    border-color: #777;
+  }
+
+  .aphelion-cursor {
+    border-color: #e0e0e0;
+  }
+
+  .aphelion-cursor.aphelion-blink {
+    animation-name: aphelion-blink-dark;
+  }
+
+  @keyframes aphelion-blink-dark {
+    0%,
+    50% {
+      border-color: #e0e0e0;
+    }
+    50.01%,
+    100% {
+      border-color: transparent;
+    }
+  }
+
+  .aphelion-selection {
+    background-color: #3a5d8a;
+  }
+
+  .aphelion-placeholder {
+    background: rgba(100, 150, 220, 0.25);
+    border-color: rgba(100, 150, 220, 0.5);
+  }
+
+  .aphelion-empty {
+    background: rgba(100, 150, 220, 0.25);
+    border-color: rgba(100, 150, 220, 0.5);
+  }
+
+  .aphelion-toolbar {
+    background: #3d3d3d;
+    border-color: #555;
+  }
+
+  .aphelion-toolbar-button {
+    background: #4d4d4d;
+    border-color: #666;
+    color: #e0e0e0;
+  }
+
+  .aphelion-toolbar-button:hover {
+    background-color: #5d5d5d;
+    border-color: #777;
+  }
+}
+
+/* ============================================
+   Print Styles
+   ============================================ */
+
+@media print {
+  .aphelion-math-field {
+    border: none !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+  }
+}
+
+/* ============================================
+   Font Presets
+   Use these classes on the container for different font styles
+   ============================================ */
+
+/* Default: Times New Roman (traditional math look) */
+.aphelion-font-times {
+  font-family: 'Times New Roman', 'Cambria Math', Symbola, serif;
+}
+
+/* Modern: STIX Two (high-quality open-source math font) */
+.aphelion-font-stix {
+  font-family: 'STIX Two Math', 'STIX Two Text', 'Times New Roman', serif;
+}
+
+/* Latin Modern (TeX-like appearance) */
+.aphelion-font-lm {
+  font-family: 'Latin Modern Math', 'Latin Modern Roman', 'Computer Modern',
+    serif;
+}
+
+/* Sans-serif option */
+.aphelion-font-sans {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+    'Helvetica Neue', Arial, sans-serif;
+}
+
+/* Computer Modern (classic TeX font) */
+.aphelion-font-cm {
+  font-family: 'Computer Modern', 'Latin Modern Roman', 'Times New Roman', serif;
+}
+
+/* Fira Math (modern, clean) */
+.aphelion-font-fira {
+  font-family: 'Fira Math', 'Fira Sans', sans-serif;
+}
+
+/* Larger text sizes */
+.aphelion-size-small {
+  font-size: 0.875em;
+}
+
+.aphelion-size-normal {
+  font-size: 1em;
+}
+
+.aphelion-size-large {
+  font-size: 1.25em;
+}
+
+.aphelion-size-xlarge {
+  font-size: 1.5em;
+}
+
+.aphelion-size-xxlarge {
+  font-size: 2em;
+}
