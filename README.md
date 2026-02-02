@@ -213,12 +213,12 @@ npm test
 
 CI runs on every PR with GitHub Actions (`.github/workflows/test.yml`).
 When tests and checks succeed a job runs and uploads an artifact containing `dist/`.
-
-Code coverage is uploaded to Codecov from the workflow.
+Code coverage is automatically updated during the test build.
 
 #### Publishing
 
-Publishing to npm is handled by `.github/workflows/publish.yml` which runs on pushes with tags matching `v*` or manual dispatch. The publish workflow runs tests, builds the package, creates an npm tarball, signs the tarball using sigstore, uploads the signed artifact and then publishes to the npm registry. The workflow enforces **OIDC trusted publishing only** (no stored npm tokens). Ensure this repository is configured as a Trusted Publisher on npm (https://www.npmjs.com/settings/~/trusted-publishers) and that the workflow has `permissions: id-token: write`. The signing step uses sigstore-js and also requires OIDC.
+Publishing to npm is handled by `.github/workflows/publish.yml` which runs on pushes with tags matching `v*` or manual dispatch. T
+Published on npm under scope @lumilla
 
 ## Browser Support
 
