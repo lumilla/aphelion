@@ -3,6 +3,7 @@
 A beautiful, interactive math editor for the modern web.
 
 [![Tests](https://github.com/lumilla/aphelion/actions/workflows/test.yml/badge.svg)](https://github.com/lumilla/aphelion/actions)
+[![npm](https://img.shields.io/npm/v/@lumilla/aphelion?style=flat-square)](https://www.npmjs.com/package/@lumilla/aphelion)
 [![codecov](https://codecov.io/gh/lumilla/aphelion/branch/main/graph/badge.svg)](https://codecov.io/gh/lumilla/aphelion)
 [![TypeScript](https://shields.io/badge/TypeScript-3178C6?logo=TypeScript&logoColor=FFF&style=flat-square)](https://www.typescriptlang.org/)
 [![License: LGPL v3](https://img.shields.io/github/license/lumilla/aphelion)](LICENSE)

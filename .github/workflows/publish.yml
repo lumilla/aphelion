@@ -10,10 +10,12 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       id-token: write
-      contents: read
+      contents: write
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -66,3 +68,12 @@ jobs:
           echo "Publishing ${{ steps.pack.outputs.tarball }} to npm via OIDC"
           npm publish "${{ steps.pack.outputs.tarball }}" --access public --provenance
         continue-on-error: false
+
+      - name: Create GitHub Release
+        uses: ncipollo/release-action@v1
+        with:
+          tag: ${{ github.ref_name }}
+          name: ${{ github.ref_name }}
+          body: "Release ${{ github.ref_name }}"
+          artifacts: "${{ steps.pack.outputs.tarball }},${{ steps.pack.outputs.tarball }}.sig.json"
+          draft: false
