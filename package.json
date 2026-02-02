@@ -1,11 +1,14 @@
 {
-  "name": "aphelion",
+  "name": "@lumilla/aphelion",
   "version": "1.0.0",
   "description": "Aphelion - A beautiful, interactive math editor for the web",
   "type": "module",
   "main": "dist/aphelion.js",
   "module": "dist/aphelion.es.js",
   "types": "dist/index.d.ts",
+  "publishConfig": {
+    "access": "public"
+  },
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -28,7 +31,6 @@
     "lint": "eslint src --ext ts,tsx",
     "typecheck": "tsc --noEmit"
   },
-  "dependencies": {},
   "peerDependencies": {
     "react": "^18.0.0",
     "react-dom": "^18.0.0"
@@ -49,7 +51,9 @@
     "@typescript-eslint/eslint-plugin": "^8.54.0",
     "@typescript-eslint/parser": "^8.54.0",
     "@vitejs/plugin-react": "^4.7.0",
+    "@vitest/coverage-v8": "^4.0.18",
     "eslint": "^9.39.2",
+    "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^7.0.1",
     "jsdom": "^23.2.0",
     "react": "^18.3.1",

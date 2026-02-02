@@ -1,0 +1,68 @@
+name: Publish
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 'lts/*'
+          cache: 'npm'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Install dependencies
+        run: npm ci || npm install
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Run tests
+        run: npm test -- --run
+
+      - name: Run coverage
+        run: npm run test:coverage || true
+
+      - name: Build library
+        run: npm run build:lib
+
+      - name: Pack package
+        id: pack
+        run: |
+          TAR=$(npm pack)
+          echo "tarball=$TAR" >> $GITHUB_OUTPUT
+          echo "Packed $TAR"
+
+      - name: Install sigstore-js
+        run: npm install @sigstore/sign --no-save
+
+      - name: Sign package
+        run: |
+          echo "Signing ${{ steps.pack.outputs.tarball }}"
+          node scripts/sign-package.js "${{ steps.pack.outputs.tarball }}"
+        continue-on-error: false
+
+      - name: Upload signed artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: signed-package
+          path: |
+            ${{ steps.pack.outputs.tarball }}
+            ${{ steps.pack.outputs.tarball }}.sig.json
+
+      - name: Publish to npm
+        run: |
+          echo "Publishing ${{ steps.pack.outputs.tarball }} to npm via OIDC"
+          npm publish "${{ steps.pack.outputs.tarball }}" --access public --provenance
+        continue-on-error: false
