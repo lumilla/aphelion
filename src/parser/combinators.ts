@@ -64,7 +64,7 @@ export function string(str: string): Parser<string> {
  */
 export function satisfy(
   predicate: (char: string) => boolean,
-  description: string
+  description: string,
 ): Parser<string> {
   return (input, position = 0) => {
     if (input.length > 0 && predicate(input[0]!)) {
@@ -106,33 +106,33 @@ export function regex(pattern: RegExp, description?: string): Parser<string> {
 /**
  * Parse any single character.
  */
-export const anyChar: Parser<string> = satisfy(() => true, 'any character');
+export const anyChar: Parser<string> = satisfy(() => true, "any character");
 
 /**
  * Parse a digit.
  */
 export const digit: Parser<string> = satisfy(
-  (c) => c >= '0' && c <= '9',
-  'digit'
+  (c) => c >= "0" && c <= "9",
+  "digit",
 );
 
 /**
  * Parse a letter.
  */
 export const letter: Parser<string> = satisfy(
-  (c) => (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z'),
-  'letter'
+  (c) => (c >= "a" && c <= "z") || (c >= "A" && c <= "Z"),
+  "letter",
 );
 
 /**
  * Parse whitespace (one or more).
  */
-export const whitespace: Parser<string> = regex(/\s+/, 'whitespace');
+export const whitespace: Parser<string> = regex(/\s+/, "whitespace");
 
 /**
  * Parse optional whitespace.
  */
-export const optionalWhitespace: Parser<string> = regex(/\s*/, 'whitespace');
+export const optionalWhitespace: Parser<string> = regex(/\s*/, "whitespace");
 
 /**
  * Map the result of a parser.
@@ -161,7 +161,7 @@ export function seq<T, U>(p1: Parser<T>, p2: Parser<U>): Parser<[T, U]> {
 
     const r2 = p2(
       r1.remaining,
-      position + (input.length - r1.remaining.length)
+      position + (input.length - r1.remaining.length),
     );
     if (!r2.success) return r2;
 
@@ -209,7 +209,7 @@ export function choice<T>(...parsers: Parser<T>[]): Parser<T> {
     }
     return {
       success: false,
-      expected: 'one of multiple options',
+      expected: "one of multiple options",
       position,
     };
   };
@@ -249,7 +249,7 @@ export function many1<T>(parser: Parser<T>): Parser<T[]> {
     if (result.success && result.value.length === 0) {
       return {
         success: false,
-        expected: 'at least one',
+        expected: "at least one",
         position,
       };
     }
@@ -278,7 +278,7 @@ export function optional<T>(parser: Parser<T>): Parser<T | undefined> {
 export function between<T, L, R>(
   left: Parser<L>,
   content: Parser<T>,
-  right: Parser<R>
+  right: Parser<R>,
 ): Parser<T> {
   return seqRight(left, seqLeft(content, right));
 }
@@ -288,7 +288,7 @@ export function between<T, L, R>(
  */
 export function sepBy<T, S>(
   parser: Parser<T>,
-  separator: Parser<S>
+  separator: Parser<S>,
 ): Parser<T[]> {
   return (input, position = 0) => {
     const results: T[] = [];
@@ -336,8 +336,8 @@ export function lazy<T>(getParser: () => Parser<T>): Parser<T> {
  * Parse a LaTeX command (backslash followed by letters).
  */
 export const latexCommand: Parser<string> = (input, position = 0) => {
-  if (!input.startsWith('\\')) {
-    return { success: false, expected: 'LaTeX command', position };
+  if (!input.startsWith("\\")) {
+    return { success: false, expected: "LaTeX command", position };
   }
 
   // Check for single-character commands like \{ \} \\ etc.
@@ -352,7 +352,7 @@ export const latexCommand: Parser<string> = (input, position = 0) => {
   // Parse command name (letters only)
   const match = input.match(/^\\([a-zA-Z]+)/);
   if (!match) {
-    return { success: false, expected: 'LaTeX command name', position };
+    return { success: false, expected: "LaTeX command name", position };
   }
 
   return {
@@ -366,14 +366,14 @@ export const latexCommand: Parser<string> = (input, position = 0) => {
  * Parse a braced group {content}.
  */
 export function bracedGroup<T>(contentParser: Parser<T>): Parser<T> {
-  return between(string('{'), contentParser, string('}'));
+  return between(string("{"), contentParser, string("}"));
 }
 
 /**
  * Parse a bracketed group [content].
  */
 export function bracketGroup<T>(contentParser: Parser<T>): Parser<T> {
-  return between(string('['), contentParser, string(']'));
+  return between(string("["), contentParser, string("]"));
 }
 
 /**
@@ -385,7 +385,7 @@ export function parse<T>(parser: Parser<T>, input: string): T {
     return result.value;
   }
   throw new Error(
-    `Parse error at position ${result.position}: expected ${result.expected}`
+    `Parse error at position ${result.position}: expected ${result.expected}`,
   );
 }
 

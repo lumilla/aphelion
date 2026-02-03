@@ -5,9 +5,9 @@
  * A matrix consists of rows and columns of cells, each cell being a MathBlock.
  */
 
-import { NodeBase } from '../core/node';
-import { InnerBlock } from '../core/blocks';
-import { L, R } from '../core/types';
+import { NodeBase } from "../core/node";
+import { InnerBlock } from "../core/blocks";
+import { L, R } from "../core/types";
 
 /**
  * A cell in a matrix - essentially an InnerBlock with row/column info.
@@ -16,7 +16,7 @@ export class MatrixCell extends InnerBlock {
   row: number;
   col: number;
   matrix: Matrix;
-  protected override cssClass = 'aphelion-matrix-cell';
+  protected override cssClass = "aphelion-matrix-cell";
 
   constructor(matrix: Matrix, row: number, col: number) {
     super();
@@ -30,20 +30,20 @@ export class MatrixCell extends InnerBlock {
  * Matrix type definitions for different bracket styles.
  */
 type MatrixType =
-  | 'matrix'
-  | 'pmatrix'
-  | 'bmatrix'
-  | 'Bmatrix'
-  | 'vmatrix'
-  | 'Vmatrix';
+  | "matrix"
+  | "pmatrix"
+  | "bmatrix"
+  | "Bmatrix"
+  | "vmatrix"
+  | "Vmatrix";
 
 const MATRIX_BRACKETS: Record<MatrixType, { left: string; right: string }> = {
-  matrix: { left: '', right: '' },
-  pmatrix: { left: '(', right: ')' },
-  bmatrix: { left: '[', right: ']' },
-  Bmatrix: { left: '{', right: '}' },
-  vmatrix: { left: '|', right: '|' },
-  Vmatrix: { left: '‖', right: '‖' },
+  matrix: { left: "", right: "" },
+  pmatrix: { left: "(", right: ")" },
+  bmatrix: { left: "[", right: "]" },
+  Bmatrix: { left: "{", right: "}" },
+  vmatrix: { left: "|", right: "|" },
+  Vmatrix: { left: "‖", right: "‖" },
 };
 
 /**
@@ -62,12 +62,12 @@ export class Matrix extends NodeBase {
   /** 2D array of matrix cells */
   cells: MatrixCell[][];
 
-  protected cssClass = 'aphelion-matrix';
+  protected cssClass = "aphelion-matrix";
 
   constructor(
-    matrixType: MatrixType = 'pmatrix',
+    matrixType: MatrixType = "pmatrix",
     rows: number = 2,
-    cols: number = 2
+    cols: number = 2,
   ) {
     super();
     this.matrixType = matrixType;
@@ -102,26 +102,26 @@ export class Matrix extends NodeBase {
   protected createDomElement(): HTMLElement {
     const brackets = MATRIX_BRACKETS[this.matrixType];
 
-    const container = document.createElement('span');
+    const container = document.createElement("span");
     container.className = this.cssClass;
     container.dataset.mqNodeId = String(this.id);
 
     // Left bracket
     if (brackets.left) {
-      const leftBracket = document.createElement('span');
+      const leftBracket = document.createElement("span");
       leftBracket.className =
-        'aphelion-matrix-bracket aphelion-matrix-bracket-l';
+        "aphelion-matrix-bracket aphelion-matrix-bracket-l";
       leftBracket.textContent = brackets.left;
       container.appendChild(leftBracket);
     }
 
     // Matrix grid
-    const grid = document.createElement('span');
-    grid.className = 'aphelion-matrix-grid';
+    const grid = document.createElement("span");
+    grid.className = "aphelion-matrix-grid";
 
     for (let r = 0; r < this.rows; r++) {
-      const row = document.createElement('span');
-      row.className = 'aphelion-matrix-row';
+      const row = document.createElement("span");
+      row.className = "aphelion-matrix-row";
 
       for (let c = 0; c < this.cols; c++) {
         const cell = this.cells[r][c];
@@ -135,9 +135,9 @@ export class Matrix extends NodeBase {
 
     // Right bracket
     if (brackets.right) {
-      const rightBracket = document.createElement('span');
+      const rightBracket = document.createElement("span");
       rightBracket.className =
-        'aphelion-matrix-bracket aphelion-matrix-bracket-r';
+        "aphelion-matrix-bracket aphelion-matrix-bracket-r";
       rightBracket.textContent = brackets.right;
       container.appendChild(rightBracket);
     }
@@ -154,10 +154,10 @@ export class Matrix extends NodeBase {
     let result = `\\begin{${env}}`;
 
     for (let r = 0; r < this.rows; r++) {
-      const rowLatex = this.cells[r].map((cell) => cell.latex()).join(' & ');
+      const rowLatex = this.cells[r].map((cell) => cell.latex()).join(" & ");
       result += rowLatex;
       if (r < this.rows - 1) {
-        result += ' \\\\ ';
+        result += " \\\\ ";
       }
     }
 
@@ -166,16 +166,16 @@ export class Matrix extends NodeBase {
   }
 
   text(): string {
-    let result = '[';
+    let result = "[";
     for (let r = 0; r < this.rows; r++) {
-      result += '[';
-      result += this.cells[r].map((cell) => cell.text()).join(', ');
-      result += ']';
+      result += "[";
+      result += this.cells[r].map((cell) => cell.text()).join(", ");
+      result += "]";
       if (r < this.rows - 1) {
-        result += ', ';
+        result += ", ";
       }
     }
-    result += ']';
+    result += "]";
     return result;
   }
 
@@ -193,46 +193,46 @@ export class Matrix extends NodeBase {
   updateDom(): void {
     const el = this.domElement;
     el.className = `${this.cssClass} mq-non-leaf`;
-    el.setAttribute('data-rows', String(this.rows));
+    el.setAttribute("data-rows", String(this.rows));
 
     // Find the grid element
-    let grid = el.querySelector('.aphelion-matrix-grid') as HTMLElement;
+    let grid = el.querySelector(".aphelion-matrix-grid") as HTMLElement;
     if (!grid) {
       // Rebuild the entire structure
-      el.innerHTML = '';
+      el.innerHTML = "";
 
       const brackets = MATRIX_BRACKETS[this.matrixType];
 
       // Left bracket
       if (brackets.left) {
-        const leftBracket = document.createElement('span');
+        const leftBracket = document.createElement("span");
         leftBracket.className =
-          'aphelion-matrix-bracket aphelion-matrix-bracket-l';
+          "aphelion-matrix-bracket aphelion-matrix-bracket-l";
         leftBracket.textContent = brackets.left;
         el.appendChild(leftBracket);
       }
 
       // Grid
-      grid = document.createElement('span');
-      grid.className = 'aphelion-matrix-grid';
+      grid = document.createElement("span");
+      grid.className = "aphelion-matrix-grid";
       el.appendChild(grid);
 
       // Right bracket
       if (brackets.right) {
-        const rightBracket = document.createElement('span');
+        const rightBracket = document.createElement("span");
         rightBracket.className =
-          'aphelion-matrix-bracket aphelion-matrix-bracket-r';
+          "aphelion-matrix-bracket aphelion-matrix-bracket-r";
         rightBracket.textContent = brackets.right;
         el.appendChild(rightBracket);
       }
     }
 
     // Clear and rebuild grid rows
-    grid.innerHTML = '';
+    grid.innerHTML = "";
 
     for (let r = 0; r < this.rows; r++) {
-      const rowEl = document.createElement('span');
-      rowEl.className = 'aphelion-matrix-row';
+      const rowEl = document.createElement("span");
+      rowEl.className = "aphelion-matrix-row";
 
       for (let c = 0; c < this.cols; c++) {
         const cell = this.cells[r][c];
@@ -310,10 +310,10 @@ export class Matrix extends NodeBase {
  * Factory functions for different matrix types.
  */
 export const Matrices = {
-  matrix: (rows = 2, cols = 2) => new Matrix('matrix', rows, cols),
-  pmatrix: (rows = 2, cols = 2) => new Matrix('pmatrix', rows, cols),
-  bmatrix: (rows = 2, cols = 2) => new Matrix('bmatrix', rows, cols),
-  Bmatrix: (rows = 2, cols = 2) => new Matrix('Bmatrix', rows, cols),
-  vmatrix: (rows = 2, cols = 2) => new Matrix('vmatrix', rows, cols),
-  Vmatrix: (rows = 2, cols = 2) => new Matrix('Vmatrix', rows, cols),
+  matrix: (rows = 2, cols = 2) => new Matrix("matrix", rows, cols),
+  pmatrix: (rows = 2, cols = 2) => new Matrix("pmatrix", rows, cols),
+  bmatrix: (rows = 2, cols = 2) => new Matrix("bmatrix", rows, cols),
+  Bmatrix: (rows = 2, cols = 2) => new Matrix("Bmatrix", rows, cols),
+  vmatrix: (rows = 2, cols = 2) => new Matrix("vmatrix", rows, cols),
+  Vmatrix: (rows = 2, cols = 2) => new Matrix("Vmatrix", rows, cols),
 };

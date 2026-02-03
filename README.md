@@ -23,22 +23,22 @@ npm install @lumilla/aphelion
 ### Vanilla JavaScript
 
 ```javascript
-import { Aphelion } from '@lumilla/aphelion';
-import '@lumilla/aphelion/styles.css';
+import { Aphelion } from "@lumilla/aphelion";
+import "@lumilla/aphelion/styles.css";
 
 const AP = Aphelion.getInterface(3);
 
 // Create an editable math field
-const mathField = AP.MathField(document.getElementById('math-field'), {
+const mathField = AP.MathField(document.getElementById("math-field"), {
   handlers: {
     edit: (mf) => {
-      console.log('LaTeX:', mf.latex());
-    }
-  }
+      console.log("LaTeX:", mf.latex());
+    },
+  },
 });
 
 // Set content programmatically
-mathField.latex('\\frac{a}{b}');
+mathField.latex("\\frac{a}{b}");
 ```
 
 ### React Components
@@ -48,9 +48,9 @@ Aphelion provides React components for both controlled and uncontrolled usage pa
 #### Uncontrolled MathField
 
 ```tsx
-import { useRef } from 'react';
-import { MathField, MathFieldRef } from '@lumilla/aphelion';
-import '@lumilla/aphelion/styles.css';
+import { useRef } from "react";
+import { MathField, MathFieldRef } from "@lumilla/aphelion";
+import "@lumilla/aphelion/styles.css";
 
 function App() {
   const ref = useRef<MathFieldRef>(null);
@@ -68,27 +68,22 @@ function App() {
 #### Controlled MathField
 
 ```tsx
-import { useState } from 'react';
-import { ControlledMathField } from '@lumilla/aphelion';
-import '@lumilla/aphelion/styles.css';
+import { useState } from "react";
+import { ControlledMathField } from "@lumilla/aphelion";
+import "@lumilla/aphelion/styles.css";
 
 function App() {
-  const [latex, setLatex] = useState('x^2');
+  const [latex, setLatex] = useState("x^2");
 
-  return (
-    <ControlledMathField
-      value={latex}
-      onChange={setLatex}
-    />
-  );
+  return <ControlledMathField value={latex} onChange={setLatex} />;
 }
 ```
 
 #### Static Math Display
 
 ```tsx
-import { StaticMath } from '@lumilla/aphelion';
-import '@lumilla/aphelion/styles.css';
+import { StaticMath } from "@lumilla/aphelion";
+import "@lumilla/aphelion/styles.css";
 
 function App() {
   return <StaticMath>{"\\frac{1}{2}"}</StaticMath>;
@@ -99,24 +94,24 @@ function App() {
 
 ### MathField Instance Methods
 
-| Method | Description |
-|--------|-------------|
-| `latex()` | Get the current LaTeX content |
-| `latex(value)` | Set the LaTeX content |
-| `text()` | Get plain text representation |
-| `html()` | Get the HTML content |
-| `focus()` | Focus the field |
-| `blur()` | Blur the field |
-| `write(latex)` | Write LaTeX at cursor position |
-| `cmd(command)` | Execute a command (e.g., `\\frac`, `\\sqrt`) |
-| `select()` | Select all content |
-| `clearSelection()` | Clear the selection |
-| `moveToRightEnd()` | Move cursor to end |
-| `moveToLeftEnd()` | Move cursor to start |
-| `keystroke(key)` | Simulate a keystroke |
-| `typedText(text)` | Simulate typing text |
-| `config(options)` | Update configuration |
-| `reflow()` | Recalculate layout |
+| Method             | Description                                  |
+| ------------------ | -------------------------------------------- |
+| `latex()`          | Get the current LaTeX content                |
+| `latex(value)`     | Set the LaTeX content                        |
+| `text()`           | Get plain text representation                |
+| `html()`           | Get the HTML content                         |
+| `focus()`          | Focus the field                              |
+| `blur()`           | Blur the field                               |
+| `write(latex)`     | Write LaTeX at cursor position               |
+| `cmd(command)`     | Execute a command (e.g., `\\frac`, `\\sqrt`) |
+| `select()`         | Select all content                           |
+| `clearSelection()` | Clear the selection                          |
+| `moveToRightEnd()` | Move cursor to end                           |
+| `moveToLeftEnd()`  | Move cursor to start                         |
+| `keystroke(key)`   | Simulate a keystroke                         |
+| `typedText(text)`  | Simulate typing text                         |
+| `config(options)`  | Update configuration                         |
+| `reflow()`         | Recalculate layout                           |
 
 ### Configuration Options
 
@@ -129,13 +124,22 @@ interface AphelionConfig {
   sumStartsWithNEquals?: boolean;
   maxDepth?: number;
   spaceBehavesLikeTab?: boolean;
-  leftRightIntoCmdGoes?: 'up' | 'down';
+  leftRightIntoCmdGoes?: "up" | "down";
   handlers?: {
     edit?: (mathField: MathFieldInstance) => void;
     enter?: (mathField: MathFieldInstance) => void;
-    moveOutOf?: (direction: 'left' | 'right', mathField: MathFieldInstance) => void;
-    selectOutOf?: (direction: 'left' | 'right', mathField: MathFieldInstance) => void;
-    deleteOutOf?: (direction: 'left' | 'right', mathField: MathFieldInstance) => void;
+    moveOutOf?: (
+      direction: "left" | "right",
+      mathField: MathFieldInstance,
+    ) => void;
+    selectOutOf?: (
+      direction: "left" | "right",
+      mathField: MathFieldInstance,
+    ) => void;
+    deleteOutOf?: (
+      direction: "left" | "right",
+      mathField: MathFieldInstance,
+    ) => void;
     upOutOf?: (mathField: MathFieldInstance) => void;
     downOutOf?: (mathField: MathFieldInstance) => void;
   };
@@ -162,19 +166,19 @@ For a complete list of supported commands, see [latexCommandInput.ts](src/comman
 ### Quadratic Formula
 
 ```javascript
-mathField.latex('x=\\frac{-b\\pm\\sqrt{b^2-4ac}}{2a}');
+mathField.latex("x=\\frac{-b\\pm\\sqrt{b^2-4ac}}{2a}");
 ```
 
 ### Euler's Identity
 
 ```javascript
-mathField.latex('e^{i\\pi}+1=0');
+mathField.latex("e^{i\\pi}+1=0");
 ```
 
 ### Summation
 
 ```javascript
-mathField.latex('\\sum_{i=1}^{n}i=\\frac{n(n+1)}{2}');
+mathField.latex("\\sum_{i=1}^{n}i=\\frac{n(n+1)}{2}");
 ```
 
 ## Development
@@ -199,7 +203,6 @@ The library builds to both ES modules and UMD formats:
 - `dist/aphelion.es.js` - ES module
 - `dist/aphelion.js` - UMD bundle (for dinosaurs, will probably be dropped in the future)
 - `dist/styles.css` - Stylesheet (Obviously)
-- `dist/index.d.ts` - TypeScript declarations
 
 ### Testing
 
@@ -207,7 +210,13 @@ For this repository, Vitest is used for testing.
 Run the test suite with
 
 ```bash
-npm test
+npm run test
+```
+
+To test (most of) the examples in the documentation, [Accudoc](https://github.com/lumilla/accudoc) is used.
+
+```bash
+npm run doctest
 ```
 
 ### CI & Nightly artifacts
@@ -218,7 +227,7 @@ Code coverage is automatically updated during the test build.
 
 #### Publishing
 
-Publishing to npm is handled by `.github/workflows/publish.yml` which runs on pushes with tags matching `v*` or manual dispatch. T
+Publishing to npm is handled by `.github/workflows/publish.yml` which runs on pushes with tags matching `v*` or manual dispatch.
 Published on npm under scope @lumilla
 
 ## Browser Support

@@ -10,10 +10,10 @@ import React, {
   useEffect,
   useCallback,
   CSSProperties,
-} from 'react';
-import { useAphelion, useControlledAphelion } from './hooks';
-import { EditorConfig } from '../core/types';
-import { Controller } from '../controller/controller';
+} from "react";
+import { useAphelion, useControlledAphelion } from "./hooks";
+import { EditorConfig } from "../core/types";
+import { Controller } from "../controller/controller";
 
 /** Props shared by all Aphelion components */
 export interface AphelionBaseProps {
@@ -105,7 +105,7 @@ export const MathField = forwardRef<MathFieldRef, MathFieldProps>(
       onBlur,
       ariaLabel,
     },
-    ref
+    ref,
   ) {
     const {
       containerRef,
@@ -132,12 +132,12 @@ export const MathField = forwardRef<MathFieldRef, MathFieldProps>(
       },
     });
 
-    // Set initial value
+    // Set initial value (updates if defaultValue or controller changes)
     useEffect(() => {
-      if (defaultValue && controller.current) {
+      if (typeof defaultValue !== "undefined" && controller?.current) {
         controller.current.setLatex(defaultValue);
       }
-    }, []);
+    }, [controller, defaultValue]);
 
     // Expose imperative methods
     useImperativeHandle(ref, () => ({
@@ -156,21 +156,21 @@ export const MathField = forwardRef<MathFieldRef, MathFieldProps>(
       if (!container) return;
 
       const handleBlur = () => onBlur?.();
-      container.addEventListener('focusout', handleBlur);
-      return () => container.removeEventListener('focusout', handleBlur);
-    }, [onBlur]);
+      container.addEventListener("focusout", handleBlur);
+      return () => container.removeEventListener("focusout", handleBlur);
+    }, [containerRef, onBlur]);
 
     return (
       <div
         ref={containerRef}
-        className={`mq-math-field ${className ?? ''}`}
+        className={`mq-math-field ${className ?? ""}`}
         style={style}
         role="textbox"
-        aria-label={ariaLabel ?? 'Math input field'}
+        aria-label={ariaLabel ?? "Math input field"}
         aria-multiline="false"
       />
     );
-  }
+  },
 );
 
 /**
@@ -191,7 +191,7 @@ export const ControlledMathField = forwardRef<
   ControlledMathFieldProps
 >(function ControlledMathField(
   { value, className, style, config, onChange, onFocus, onBlur, ariaLabel },
-  ref
+  ref,
 ) {
   const {
     containerRef,
@@ -230,17 +230,17 @@ export const ControlledMathField = forwardRef<
     if (!container) return;
 
     const handleBlur = () => onBlur?.();
-    container.addEventListener('focusout', handleBlur);
-    return () => container.removeEventListener('focusout', handleBlur);
-  }, [onBlur]);
+    container.addEventListener("focusout", handleBlur);
+    return () => container.removeEventListener("focusout", handleBlur);
+  }, [containerRef, onBlur]);
 
   return (
     <div
       ref={containerRef}
-      className={`mq-math-field ${className ?? ''}`}
+      className={`mq-math-field ${className ?? ""}`}
       style={style}
       role="textbox"
-      aria-label={ariaLabel ?? 'Math input field'}
+      aria-label={ariaLabel ?? "Math input field"}
       aria-multiline="false"
     />
   );
@@ -270,7 +270,7 @@ export function StaticMath({
     controller.setLatex(children);
 
     // Remove textarea and make non-editable
-    const textarea = containerRef.current.querySelector('.aphelion-textarea');
+    const textarea = containerRef.current.querySelector(".aphelion-textarea");
     textarea?.remove();
 
     return () => {
@@ -281,7 +281,7 @@ export function StaticMath({
   return (
     <div
       ref={containerRef}
-      className={`mq-static-math ${className ?? ''}`}
+      className={`mq-static-math ${className ?? ""}`}
       style={style}
       role="img"
       aria-label={ariaLabel ?? `Math: ${children}`}
@@ -299,13 +299,13 @@ export interface MathToolbarProps {
   className?: string;
   /** Which buttons to show */
   buttons?: Array<
-    | 'fraction'
-    | 'sqrt'
-    | 'superscript'
-    | 'subscript'
-    | 'parens'
-    | 'brackets'
-    | 'braces'
+    | "fraction"
+    | "sqrt"
+    | "superscript"
+    | "subscript"
+    | "parens"
+    | "brackets"
+    | "braces"
   >;
 }
 
@@ -316,12 +316,12 @@ export function MathToolbar({
   mathFieldRef,
   className,
   buttons = [
-    'fraction',
-    'sqrt',
-    'superscript',
-    'subscript',
-    'parens',
-    'brackets',
+    "fraction",
+    "sqrt",
+    "superscript",
+    "subscript",
+    "parens",
+    "brackets",
   ],
 }: MathToolbarProps) {
   const handleClick = useCallback(
@@ -329,21 +329,21 @@ export function MathToolbar({
       mathFieldRef.current?.insertCommand(cmd);
       mathFieldRef.current?.focus();
     },
-    [mathFieldRef]
+    [mathFieldRef],
   );
 
   const buttonConfig: Record<string, { label: string; symbol: string }> = {
-    fraction: { label: 'Fraction', symbol: '⁄' },
-    sqrt: { label: 'Square root', symbol: '√' },
-    superscript: { label: 'Superscript', symbol: 'xⁿ' },
-    subscript: { label: 'Subscript', symbol: 'x₂' },
-    parens: { label: 'Parentheses', symbol: '( )' },
-    brackets: { label: 'Brackets', symbol: '[ ]' },
-    braces: { label: 'Braces', symbol: '{ }' },
+    fraction: { label: "Fraction", symbol: "⁄" },
+    sqrt: { label: "Square root", symbol: "√" },
+    superscript: { label: "Superscript", symbol: "xⁿ" },
+    subscript: { label: "Subscript", symbol: "x₂" },
+    parens: { label: "Parentheses", symbol: "( )" },
+    brackets: { label: "Brackets", symbol: "[ ]" },
+    braces: { label: "Braces", symbol: "{ }" },
   };
 
   return (
-    <div className={`aphelion-toolbar ${className ?? ''}`} role="toolbar">
+    <div className={`aphelion-toolbar ${className ?? ""}`} role="toolbar">
       {buttons.map((btn) => (
         <button
           key={btn}

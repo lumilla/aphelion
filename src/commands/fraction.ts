@@ -4,9 +4,9 @@
  * A fraction node with numerator and denominator.
  */
 
-import { NodeBase } from '../core/node';
-import { InnerBlock } from '../core/blocks';
-import { L, R } from '../core/types';
+import { NodeBase } from "../core/node";
+import { InnerBlock } from "../core/blocks";
+import { L, R } from "../core/types";
 
 /**
  * A fraction with numerator and denominator blocks.
@@ -37,21 +37,21 @@ export class Fraction extends NodeBase {
   }
 
   protected createDomElement(): HTMLElement {
-    const el = document.createElement('span');
-    el.className = 'aphelion-fraction aphelion-non-leaf';
-    el.setAttribute('data-mq-node-id', String(this.id));
+    const el = document.createElement("span");
+    el.className = "aphelion-fraction aphelion-non-leaf";
+    el.setAttribute("data-mq-node-id", String(this.id));
 
-    const innerEl = document.createElement('span');
-    innerEl.className = 'aphelion-fraction-inner';
+    const innerEl = document.createElement("span");
+    innerEl.className = "aphelion-fraction-inner";
 
-    const numEl = document.createElement('span');
-    numEl.className = 'aphelion-numerator';
+    const numEl = document.createElement("span");
+    numEl.className = "aphelion-numerator";
 
-    const denomEl = document.createElement('span');
-    denomEl.className = 'aphelion-denominator';
+    const denomEl = document.createElement("span");
+    denomEl.className = "aphelion-denominator";
 
-    const fracLine = document.createElement('span');
-    fracLine.className = 'aphelion-fraction-line';
+    const fracLine = document.createElement("span");
+    fracLine.className = "aphelion-fraction-line";
 
     innerEl.appendChild(numEl);
     innerEl.appendChild(fracLine);
@@ -81,16 +81,16 @@ export class Fraction extends NodeBase {
 
   updateDom(): void {
     const el = this.domElement;
-    const numEl = el.querySelector('.aphelion-numerator') as HTMLElement;
-    const denomEl = el.querySelector('.aphelion-denominator') as HTMLElement;
+    const numEl = el.querySelector(".aphelion-numerator") as HTMLElement;
+    const denomEl = el.querySelector(".aphelion-denominator") as HTMLElement;
 
     // Clear and update numerator
-    numEl.innerHTML = '';
+    numEl.innerHTML = "";
     this.numerator.updateDom();
     numEl.appendChild(this.numerator.domElement);
 
     // Clear and update denominator
-    denomEl.innerHTML = '';
+    denomEl.innerHTML = "";
     this.denominator.updateDom();
     denomEl.appendChild(this.denominator.domElement);
   }
@@ -109,7 +109,7 @@ export class Fraction extends NodeBase {
 export class DisplayFraction extends Fraction {
   protected override createDomElement(): HTMLElement {
     const el = super.createDomElement();
-    el.classList.add('aphelion-dfrac');
+    el.classList.add("aphelion-dfrac");
     return el;
   }
 
@@ -126,7 +126,7 @@ export class DisplayFraction extends Fraction {
 export class TextFraction extends Fraction {
   protected override createDomElement(): HTMLElement {
     const el = super.createDomElement();
-    el.classList.add('aphelion-tfrac');
+    el.classList.add("aphelion-tfrac");
     return el;
   }
 

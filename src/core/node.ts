@@ -13,7 +13,7 @@ import {
   R,
   generateNodeId,
   otherDir,
-} from './types';
+} from "./types";
 
 /**
  * Base class for all nodes in the math tree.
@@ -312,7 +312,7 @@ export abstract class NodeBase {
    * Get the LaTeX of all children joined together.
    */
   childrenLatex(): string {
-    let latex = '';
+    let latex = "";
     for (const child of this.children()) {
       latex += child.latex();
     }
@@ -353,7 +353,7 @@ export abstract class NodeBase {
 export class NodeFragment {
   constructor(
     public readonly leftEnd: NodeBase,
-    public readonly rightEnd: NodeBase = leftEnd
+    public readonly rightEnd: NodeBase = leftEnd,
   ) {}
 
   /**
@@ -379,7 +379,7 @@ export class NodeFragment {
    * Get the combined LaTeX of all nodes in the fragment.
    */
   latex(): string {
-    let result = '';
+    let result = "";
     for (const node of this) {
       result += node.latex();
     }
@@ -390,7 +390,7 @@ export class NodeFragment {
    * Get the combined text of all nodes in the fragment.
    */
   text(): string {
-    let result = '';
+    let result = "";
     for (const node of this) {
       result += node.text();
     }

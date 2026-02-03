@@ -4,18 +4,18 @@
  * These tests ensure that fixed bugs don't regress.
  */
 
-import { describe, it, expect, beforeEach } from 'vitest';
-import { L, R } from '../core/types';
-import { RootBlock, InnerBlock } from '../core/blocks';
-import { MathSymbol } from '../commands/symbol';
-import { Cursor } from '../core/cursor';
-import { Fraction } from '../commands/fraction';
-import { Summation, Product, Integral, Limit } from '../commands/largeops';
-import { TextMode } from '../commands/accent';
-import { Superscript, Subscript } from '../commands/supsub';
-import { SquareRoot } from '../commands/sqrt';
+import { describe, it, expect, beforeEach } from "vitest";
+import { L, R } from "../core/types";
+import { RootBlock, InnerBlock } from "../core/blocks";
+import { MathSymbol } from "../commands/symbol";
+import { Cursor } from "../core/cursor";
+import { Fraction } from "../commands/fraction";
+import { Summation, Product, Integral, Limit } from "../commands/largeops";
+import { TextMode } from "../commands/accent";
+import { Superscript, Subscript } from "../commands/supsub";
+import { SquareRoot } from "../commands/sqrt";
 
-describe('Up/Down Navigation in LargeOperators', () => {
+describe("Up/Down Navigation in LargeOperators", () => {
   let root: RootBlock;
   let cursor: Cursor;
 
@@ -24,7 +24,7 @@ describe('Up/Down Navigation in LargeOperators', () => {
     cursor = new Cursor(root);
   });
 
-  it('should have upper limit as ends[L] for proper up navigation', () => {
+  it("should have upper limit as ends[L] for proper up navigation", () => {
     const sum = new Summation(true);
     cursor.insert(sum);
 
@@ -34,7 +34,7 @@ describe('Up/Down Navigation in LargeOperators', () => {
     expect(sum.ends[R]).toBe(sum.lower);
   });
 
-  it('should navigate up from lower to upper limit', () => {
+  it("should navigate up from lower to upper limit", () => {
     const sum = new Summation(true);
     cursor.insert(sum);
 
@@ -47,7 +47,7 @@ describe('Up/Down Navigation in LargeOperators', () => {
     expect(cursor.parent).toBe(sum.upper);
   });
 
-  it('should navigate down from upper to lower limit', () => {
+  it("should navigate down from upper to lower limit", () => {
     const sum = new Summation(true);
     cursor.insert(sum);
 
@@ -60,7 +60,7 @@ describe('Up/Down Navigation in LargeOperators', () => {
     expect(cursor.parent).toBe(sum.lower);
   });
 
-  it('should work with Integral', () => {
+  it("should work with Integral", () => {
     const integral = new Integral(true);
     cursor.insert(integral);
 
@@ -68,7 +68,7 @@ describe('Up/Down Navigation in LargeOperators', () => {
     expect(integral.ends[R]).toBe(integral.lower);
   });
 
-  it('should work with Product', () => {
+  it("should work with Product", () => {
     const prod = new Product(true);
     cursor.insert(prod);
 
@@ -77,7 +77,7 @@ describe('Up/Down Navigation in LargeOperators', () => {
   });
 });
 
-describe('Backspace Protection for Containers with Content', () => {
+describe("Backspace Protection for Containers with Content", () => {
   let root: RootBlock;
   let cursor: Cursor;
 
@@ -86,13 +86,13 @@ describe('Backspace Protection for Containers with Content', () => {
     cursor = new Cursor(root);
   });
 
-  it('should not delete fraction when denominator has content', () => {
+  it("should not delete fraction when denominator has content", () => {
     const frac = new Fraction();
     cursor.insert(frac);
 
     // Add content to denominator
     cursor.moveTo(frac.denominator);
-    const sym = new MathSymbol('x', 'x');
+    const sym = new MathSymbol("x", "x");
     cursor.insert(sym);
 
     // Move to empty numerator
@@ -106,13 +106,13 @@ describe('Backspace Protection for Containers with Content', () => {
     expect(frac.denominator.ends[L]).toBe(sym);
   });
 
-  it('should not delete fraction when numerator has content', () => {
+  it("should not delete fraction when numerator has content", () => {
     const frac = new Fraction();
     cursor.insert(frac);
 
     // Add content to numerator
     cursor.moveTo(frac.numerator);
-    const sym = new MathSymbol('x', 'x');
+    const sym = new MathSymbol("x", "x");
     cursor.insert(sym);
 
     // Move to empty denominator
@@ -126,7 +126,7 @@ describe('Backspace Protection for Containers with Content', () => {
     expect(frac.numerator.ends[L]).toBe(sym);
   });
 
-  it('should delete fraction when both blocks are empty', () => {
+  it("should delete fraction when both blocks are empty", () => {
     const frac = new Fraction();
     cursor.insert(frac);
 
@@ -140,13 +140,13 @@ describe('Backspace Protection for Containers with Content', () => {
     expect(root.ends[L]).toBeUndefined();
   });
 
-  it('should not delete sum when lower limit has content', () => {
+  it("should not delete sum when lower limit has content", () => {
     const sum = new Summation(true);
     cursor.insert(sum);
 
     // Add content to lower limit
     cursor.moveTo(sum.lower!);
-    const sym = new MathSymbol('i', 'i');
+    const sym = new MathSymbol("i", "i");
     cursor.insert(sym);
 
     // Move to empty upper limit
@@ -161,7 +161,7 @@ describe('Backspace Protection for Containers with Content', () => {
   });
 });
 
-describe('Limit Class', () => {
+describe("Limit Class", () => {
   let root: RootBlock;
   let cursor: Cursor;
 
@@ -170,7 +170,7 @@ describe('Limit Class', () => {
     cursor = new Cursor(root);
   });
 
-  it('should create Limit with subscript', () => {
+  it("should create Limit with subscript", () => {
     const lim = new Limit(true);
     cursor.insert(lim);
 
@@ -180,95 +180,95 @@ describe('Limit Class', () => {
     expect(lim.ends[R]).toBe(lim.subscript);
   });
 
-  it('should generate correct LaTeX with subscript', () => {
+  it("should generate correct LaTeX with subscript", () => {
     const lim = new Limit(true);
     cursor.insert(lim);
 
     cursor.moveTo(lim.subscript!);
-    cursor.insert(new MathSymbol('n', 'n'));
-    cursor.insert(new MathSymbol('→', '\\to'));
-    cursor.insert(new MathSymbol('∞', '\\infty'));
+    cursor.insert(new MathSymbol("n", "n"));
+    cursor.insert(new MathSymbol("→", "\\to"));
+    cursor.insert(new MathSymbol("∞", "\\infty"));
 
-    expect(lim.latex()).toBe('\\lim_{n\\to\\infty}');
+    expect(lim.latex()).toBe("\\lim_{n\\to\\infty}");
   });
 
-  it('should create Limit without subscript', () => {
+  it("should create Limit without subscript", () => {
     const lim = new Limit(false);
     cursor.insert(lim);
 
     expect(lim.subscript).toBeUndefined();
-    expect(lim.latex()).toBe('\\lim');
+    expect(lim.latex()).toBe("\\lim");
   });
 });
 
-describe('TextMode Auto-Exit', () => {
-  it('should mark mathbb for auto-exit', () => {
-    const textMode = new TextMode('\\mathbb');
+describe("TextMode Auto-Exit", () => {
+  it("should mark mathbb for auto-exit", () => {
+    const textMode = new TextMode("\\mathbb");
     expect(textMode.autoExitAfterOne).toBe(true);
   });
 
-  it('should mark mathcal for auto-exit', () => {
-    const textMode = new TextMode('\\mathcal');
+  it("should mark mathcal for auto-exit", () => {
+    const textMode = new TextMode("\\mathcal");
     expect(textMode.autoExitAfterOne).toBe(true);
   });
 
-  it('should mark mathfrak for auto-exit', () => {
-    const textMode = new TextMode('\\mathfrak');
+  it("should mark mathfrak for auto-exit", () => {
+    const textMode = new TextMode("\\mathfrak");
     expect(textMode.autoExitAfterOne).toBe(true);
   });
 
-  it('should mark mathscr for auto-exit', () => {
-    const textMode = new TextMode('\\mathscr');
+  it("should mark mathscr for auto-exit", () => {
+    const textMode = new TextMode("\\mathscr");
     expect(textMode.autoExitAfterOne).toBe(true);
   });
 
-  it('should NOT mark text for auto-exit', () => {
-    const textMode = new TextMode('\\text');
+  it("should NOT mark text for auto-exit", () => {
+    const textMode = new TextMode("\\text");
     expect(textMode.autoExitAfterOne).toBe(false);
   });
 
-  it('should NOT mark mathrm for auto-exit', () => {
-    const textMode = new TextMode('\\mathrm');
+  it("should NOT mark mathrm for auto-exit", () => {
+    const textMode = new TextMode("\\mathrm");
     expect(textMode.autoExitAfterOne).toBe(false);
   });
 });
 
-describe('InnerBlock Empty State', () => {
-  it('should add placeholder when empty and showPlaceholder is true', () => {
+describe("InnerBlock Empty State", () => {
+  it("should add placeholder when empty and showPlaceholder is true", () => {
     const block = new InnerBlock();
     block.showPlaceholder = true;
     block.updateDom();
 
-    const placeholder = block.domElement.querySelector('.aphelion-placeholder');
+    const placeholder = block.domElement.querySelector(".aphelion-placeholder");
     expect(placeholder).not.toBeNull();
-    expect(block.domElement.classList.contains('aphelion-empty')).toBe(false);
+    expect(block.domElement.classList.contains("aphelion-empty")).toBe(false);
   });
 
-  it('should add mq-empty when empty and showPlaceholder is false', () => {
+  it("should add mq-empty when empty and showPlaceholder is false", () => {
     const block = new InnerBlock();
     block.showPlaceholder = false;
     block.updateDom();
 
-    const placeholder = block.domElement.querySelector('.aphelion-placeholder');
+    const placeholder = block.domElement.querySelector(".aphelion-placeholder");
     expect(placeholder).toBeNull();
-    expect(block.domElement.classList.contains('aphelion-empty')).toBe(true);
+    expect(block.domElement.classList.contains("aphelion-empty")).toBe(true);
   });
 
-  it('should not have double boxes (placeholder AND aphelion-empty)', () => {
+  it("should not have double boxes (placeholder AND aphelion-empty)", () => {
     const block = new InnerBlock();
     block.showPlaceholder = true;
     block.updateDom();
 
-    const placeholder = block.domElement.querySelector('.aphelion-placeholder');
-    const hasEmptyClass = block.domElement.classList.contains('aphelion-empty');
+    const placeholder = block.domElement.querySelector(".aphelion-placeholder");
+    const hasEmptyClass = block.domElement.classList.contains("aphelion-empty");
 
     // Should have placeholder XOR aphelion-empty, not both
     expect(placeholder !== null && hasEmptyClass).toBe(false);
   });
 
-  it('should remove empty indicators when block has content', () => {
+  it("should remove empty indicators when block has content", () => {
     const block = new InnerBlock();
-    const sym = new MathSymbol('x', 'x');
+    const sym = new MathSymbol("x", "x");
 
     // Add content
     sym.parent = block;
@@ -277,13 +277,13 @@ describe('InnerBlock Empty State', () => {
 
     block.updateDom();
 
-    const placeholder = block.domElement.querySelector('.aphelion-placeholder');
+    const placeholder = block.domElement.querySelector(".aphelion-placeholder");
     expect(placeholder).toBeNull();
-    expect(block.domElement.classList.contains('aphelion-empty')).toBe(false);
+    expect(block.domElement.classList.contains("aphelion-empty")).toBe(false);
   });
 });
 
-describe('LargeOperator LaTeX Generation', () => {
+describe("LargeOperator LaTeX Generation", () => {
   let root: RootBlock;
   let cursor: Cursor;
 
@@ -292,51 +292,51 @@ describe('LargeOperator LaTeX Generation', () => {
     cursor = new Cursor(root);
   });
 
-  it('should generate sum with limits', () => {
+  it("should generate sum with limits", () => {
     const sum = new Summation(true);
     cursor.insert(sum);
 
     cursor.moveTo(sum.lower!);
-    cursor.insert(new MathSymbol('i', 'i'));
-    cursor.insert(new MathSymbol('=', '='));
-    cursor.insert(new MathSymbol('1', '1'));
+    cursor.insert(new MathSymbol("i", "i"));
+    cursor.insert(new MathSymbol("=", "="));
+    cursor.insert(new MathSymbol("1", "1"));
 
     cursor.moveTo(sum.upper!);
-    cursor.insert(new MathSymbol('n', 'n'));
+    cursor.insert(new MathSymbol("n", "n"));
 
-    expect(sum.latex()).toBe('\\sum_{i=1}^{n}');
+    expect(sum.latex()).toBe("\\sum_{i=1}^{n}");
   });
 
-  it('should generate integral with limits', () => {
+  it("should generate integral with limits", () => {
     const integral = new Integral(true);
     cursor.insert(integral);
 
     cursor.moveTo(integral.lower!);
-    cursor.insert(new MathSymbol('0', '0'));
+    cursor.insert(new MathSymbol("0", "0"));
 
     cursor.moveTo(integral.upper!);
-    cursor.insert(new MathSymbol('∞', '\\infty'));
+    cursor.insert(new MathSymbol("∞", "\\infty"));
 
-    expect(integral.latex()).toBe('\\int_{0}^{\\infty}');
+    expect(integral.latex()).toBe("\\int_{0}^{\\infty}");
   });
 
-  it('should generate product with limits', () => {
+  it("should generate product with limits", () => {
     const prod = new Product(true);
     cursor.insert(prod);
 
     cursor.moveTo(prod.lower!);
-    cursor.insert(new MathSymbol('k', 'k'));
-    cursor.insert(new MathSymbol('=', '='));
-    cursor.insert(new MathSymbol('1', '1'));
+    cursor.insert(new MathSymbol("k", "k"));
+    cursor.insert(new MathSymbol("=", "="));
+    cursor.insert(new MathSymbol("1", "1"));
 
     cursor.moveTo(prod.upper!);
-    cursor.insert(new MathSymbol('n', 'n'));
+    cursor.insert(new MathSymbol("n", "n"));
 
-    expect(prod.latex()).toBe('\\prod_{k=1}^{n}');
+    expect(prod.latex()).toBe("\\prod_{k=1}^{n}");
   });
 });
 
-describe('TextMode LaTeX Generation', () => {
+describe("TextMode LaTeX Generation", () => {
   let root: RootBlock;
   let cursor: Cursor;
 
@@ -345,32 +345,32 @@ describe('TextMode LaTeX Generation', () => {
     cursor = new Cursor(root);
   });
 
-  it('should generate \\mathbb correctly', () => {
-    const textMode = new TextMode('\\mathbb');
+  it("should generate \\mathbb correctly", () => {
+    const textMode = new TextMode("\\mathbb");
     cursor.insert(textMode);
 
     cursor.moveTo(textMode.content);
-    cursor.insert(new MathSymbol('R', 'R'));
+    cursor.insert(new MathSymbol("R", "R"));
 
-    expect(textMode.latex()).toBe('\\mathbb{R}');
+    expect(textMode.latex()).toBe("\\mathbb{R}");
   });
 
-  it('should generate \\text correctly', () => {
-    const textMode = new TextMode('\\text');
+  it("should generate \\text correctly", () => {
+    const textMode = new TextMode("\\text");
     cursor.insert(textMode);
 
     cursor.moveTo(textMode.content);
-    cursor.insert(new MathSymbol('h', 'h'));
-    cursor.insert(new MathSymbol('e', 'e'));
-    cursor.insert(new MathSymbol('l', 'l'));
-    cursor.insert(new MathSymbol('l', 'l'));
-    cursor.insert(new MathSymbol('o', 'o'));
+    cursor.insert(new MathSymbol("h", "h"));
+    cursor.insert(new MathSymbol("e", "e"));
+    cursor.insert(new MathSymbol("l", "l"));
+    cursor.insert(new MathSymbol("l", "l"));
+    cursor.insert(new MathSymbol("o", "o"));
 
-    expect(textMode.latex()).toBe('\\text{hello}');
+    expect(textMode.latex()).toBe("\\text{hello}");
   });
 });
 
-describe('SquareRoot', () => {
+describe("SquareRoot", () => {
   let root: RootBlock;
   let cursor: Cursor;
 
@@ -379,7 +379,7 @@ describe('SquareRoot', () => {
     cursor = new Cursor(root);
   });
 
-  it('should create sqrt with radicand', () => {
+  it("should create sqrt with radicand", () => {
     const sqrt = new SquareRoot();
     cursor.insert(sqrt);
 
@@ -389,23 +389,23 @@ describe('SquareRoot', () => {
     expect(sqrt.ends[R]).toBe(sqrt.radicand);
   });
 
-  it('should generate correct LaTeX', () => {
+  it("should generate correct LaTeX", () => {
     const sqrt = new SquareRoot();
     cursor.insert(sqrt);
 
     cursor.moveTo(sqrt.radicand);
-    cursor.insert(new MathSymbol('x', 'x'));
+    cursor.insert(new MathSymbol("x", "x"));
 
-    expect(sqrt.latex()).toBe('\\sqrt{x}');
+    expect(sqrt.latex()).toBe("\\sqrt{x}");
   });
 
-  it('should generate correct text', () => {
+  it("should generate correct text", () => {
     const sqrt = new SquareRoot();
     cursor.insert(sqrt);
 
     cursor.moveTo(sqrt.radicand);
-    cursor.insert(new MathSymbol('x', 'x'));
+    cursor.insert(new MathSymbol("x", "x"));
 
-    expect(sqrt.text()).toBe('sqrt(x)');
+    expect(sqrt.text()).toBe("sqrt(x)");
   });
 });

@@ -4,9 +4,9 @@
  * Summation, product, integral, and similar large operators.
  */
 
-import { NodeBase } from '../core/node';
-import { InnerBlock } from '../core/blocks';
-import { L, R } from '../core/types';
+import { NodeBase } from "../core/node";
+import { InnerBlock } from "../core/blocks";
+import { L, R } from "../core/types";
 
 /**
  * Base class for large operators with optional limits.
@@ -25,7 +25,7 @@ export abstract class LargeOperator extends NodeBase {
   readonly upper?: InnerBlock;
 
   /** Whether limits are displayed inline or above/below */
-  limitsDisplay: 'inline' | 'display' = 'display';
+  limitsDisplay: "inline" | "display" = "display";
 
   constructor(withLimits: boolean = false) {
     super();
@@ -51,24 +51,24 @@ export abstract class LargeOperator extends NodeBase {
   }
 
   protected createDomElement(): HTMLElement {
-    const el = document.createElement('span');
-    el.className = 'aphelion-large-operator aphelion-non-leaf';
-    el.setAttribute('data-mq-node-id', String(this.id));
+    const el = document.createElement("span");
+    el.className = "aphelion-large-operator aphelion-non-leaf";
+    el.setAttribute("data-mq-node-id", String(this.id));
 
-    if (this.lower && this.upper && this.limitsDisplay === 'display') {
+    if (this.lower && this.upper && this.limitsDisplay === "display") {
       // Display style with limits above/below
-      const container = document.createElement('span');
-      container.className = 'aphelion-limits-container';
+      const container = document.createElement("span");
+      container.className = "aphelion-limits-container";
 
-      const upperEl = document.createElement('span');
-      upperEl.className = 'aphelion-upper-limit';
+      const upperEl = document.createElement("span");
+      upperEl.className = "aphelion-upper-limit";
 
-      const symbolEl = document.createElement('span');
-      symbolEl.className = 'aphelion-operator-symbol';
+      const symbolEl = document.createElement("span");
+      symbolEl.className = "aphelion-operator-symbol";
       symbolEl.textContent = this.symbol;
 
-      const lowerEl = document.createElement('span');
-      lowerEl.className = 'aphelion-lower-limit';
+      const lowerEl = document.createElement("span");
+      lowerEl.className = "aphelion-lower-limit";
 
       container.appendChild(upperEl);
       container.appendChild(symbolEl);
@@ -76,18 +76,18 @@ export abstract class LargeOperator extends NodeBase {
       el.appendChild(container);
     } else if (this.lower && this.upper) {
       // Inline style with limits as sub/superscript
-      const symbolEl = document.createElement('span');
-      symbolEl.className = 'aphelion-operator-symbol';
+      const symbolEl = document.createElement("span");
+      symbolEl.className = "aphelion-operator-symbol";
       symbolEl.textContent = this.symbol;
 
-      const limitsEl = document.createElement('span');
-      limitsEl.className = 'aphelion-inline-limits';
+      const limitsEl = document.createElement("span");
+      limitsEl.className = "aphelion-inline-limits";
 
-      const upperEl = document.createElement('sup');
-      upperEl.className = 'aphelion-upper-limit';
+      const upperEl = document.createElement("sup");
+      upperEl.className = "aphelion-upper-limit";
 
-      const lowerEl = document.createElement('sub');
-      lowerEl.className = 'aphelion-lower-limit';
+      const lowerEl = document.createElement("sub");
+      lowerEl.className = "aphelion-lower-limit";
 
       limitsEl.appendChild(upperEl);
       limitsEl.appendChild(lowerEl);
@@ -96,8 +96,8 @@ export abstract class LargeOperator extends NodeBase {
       el.appendChild(limitsEl);
     } else {
       // No limits
-      const symbolEl = document.createElement('span');
-      symbolEl.className = 'aphelion-operator-symbol';
+      const symbolEl = document.createElement("span");
+      symbolEl.className = "aphelion-operator-symbol";
       symbolEl.textContent = this.symbol;
       el.appendChild(symbolEl);
     }
@@ -135,15 +135,15 @@ export abstract class LargeOperator extends NodeBase {
     const el = this.domElement;
 
     if (this.lower) {
-      const lowerEl = el.querySelector('.aphelion-lower-limit') as HTMLElement;
-      lowerEl.innerHTML = '';
+      const lowerEl = el.querySelector(".aphelion-lower-limit") as HTMLElement;
+      lowerEl.innerHTML = "";
       this.lower.updateDom();
       lowerEl.appendChild(this.lower.domElement);
     }
 
     if (this.upper) {
-      const upperEl = el.querySelector('.aphelion-upper-limit') as HTMLElement;
-      upperEl.innerHTML = '';
+      const upperEl = el.querySelector(".aphelion-upper-limit") as HTMLElement;
+      upperEl.innerHTML = "";
       this.upper.updateDom();
       upperEl.appendChild(this.upper.domElement);
     }
@@ -154,11 +154,11 @@ export abstract class LargeOperator extends NodeBase {
  * Summation (∑)
  */
 export class Summation extends LargeOperator {
-  readonly symbol = '∑';
-  readonly command = '\\sum';
+  readonly symbol = "∑";
+  readonly command = "\\sum";
 
   override mathspeak(): string {
-    let result = 'summation';
+    let result = "summation";
     if (this.lower) {
       result += ` from ${this.lower.mathspeak()}`;
     }
@@ -173,11 +173,11 @@ export class Summation extends LargeOperator {
  * Product (∏)
  */
 export class Product extends LargeOperator {
-  readonly symbol = '∏';
-  readonly command = '\\prod';
+  readonly symbol = "∏";
+  readonly command = "\\prod";
 
   override mathspeak(): string {
-    let result = 'product';
+    let result = "product";
     if (this.lower) {
       result += ` from ${this.lower.mathspeak()}`;
     }
@@ -192,11 +192,11 @@ export class Product extends LargeOperator {
  * Integral (∫)
  */
 export class Integral extends LargeOperator {
-  readonly symbol = '∫';
-  readonly command = '\\int';
+  readonly symbol = "∫";
+  readonly command = "\\int";
 
   override mathspeak(): string {
-    let result = 'integral';
+    let result = "integral";
     if (this.lower) {
       result += ` from ${this.lower.mathspeak()}`;
     }
@@ -211,11 +211,11 @@ export class Integral extends LargeOperator {
  * Double integral (∬)
  */
 export class DoubleIntegral extends LargeOperator {
-  readonly symbol = '∬';
-  readonly command = '\\iint';
+  readonly symbol = "∬";
+  readonly command = "\\iint";
 
   override mathspeak(): string {
-    return 'double integral';
+    return "double integral";
   }
 }
 
@@ -223,11 +223,11 @@ export class DoubleIntegral extends LargeOperator {
  * Triple integral (∭)
  */
 export class TripleIntegral extends LargeOperator {
-  readonly symbol = '∭';
-  readonly command = '\\iiint';
+  readonly symbol = "∭";
+  readonly command = "\\iiint";
 
   override mathspeak(): string {
-    return 'triple integral';
+    return "triple integral";
   }
 }
 
@@ -235,11 +235,11 @@ export class TripleIntegral extends LargeOperator {
  * Contour integral (∮)
  */
 export class ContourIntegral extends LargeOperator {
-  readonly symbol = '∮';
-  readonly command = '\\oint';
+  readonly symbol = "∮";
+  readonly command = "\\oint";
 
   override mathspeak(): string {
-    return 'contour integral';
+    return "contour integral";
   }
 }
 
@@ -247,11 +247,11 @@ export class ContourIntegral extends LargeOperator {
  * Union (⋃)
  */
 export class BigUnion extends LargeOperator {
-  readonly symbol = '⋃';
-  readonly command = '\\bigcup';
+  readonly symbol = "⋃";
+  readonly command = "\\bigcup";
 
   override mathspeak(): string {
-    return 'union';
+    return "union";
   }
 }
 
@@ -259,11 +259,11 @@ export class BigUnion extends LargeOperator {
  * Intersection (⋂)
  */
 export class BigIntersection extends LargeOperator {
-  readonly symbol = '⋂';
-  readonly command = '\\bigcap';
+  readonly symbol = "⋂";
+  readonly command = "\\bigcap";
 
   override mathspeak(): string {
-    return 'intersection';
+    return "intersection";
   }
 }
 
@@ -275,7 +275,7 @@ export class Limit extends NodeBase {
   readonly subscript?: InnerBlock;
 
   /** The LaTeX command */
-  readonly command = '\\lim';
+  readonly command = "\\lim";
 
   constructor(withSubscript: boolean = false) {
     super();
@@ -290,23 +290,23 @@ export class Limit extends NodeBase {
   }
 
   protected createDomElement(): HTMLElement {
-    const el = document.createElement('span');
+    const el = document.createElement("span");
     el.className =
-      'aphelion-large-operator aphelion-limit-op aphelion-non-leaf';
-    el.setAttribute('data-mq-node-id', String(this.id));
+      "aphelion-large-operator aphelion-limit-op aphelion-non-leaf";
+    el.setAttribute("data-mq-node-id", String(this.id));
 
-    const container = document.createElement('span');
-    container.className = 'aphelion-limits-container';
+    const container = document.createElement("span");
+    container.className = "aphelion-limits-container";
 
-    const operatorEl = document.createElement('span');
-    operatorEl.className = 'aphelion-operator-name';
-    operatorEl.textContent = 'lim';
+    const operatorEl = document.createElement("span");
+    operatorEl.className = "aphelion-operator-name";
+    operatorEl.textContent = "lim";
 
     container.appendChild(operatorEl);
 
     if (this.subscript) {
-      const subEl = document.createElement('span');
-      subEl.className = 'aphelion-lower-limit';
+      const subEl = document.createElement("span");
+      subEl.className = "aphelion-lower-limit";
       container.appendChild(subEl);
     }
 
@@ -318,29 +318,29 @@ export class Limit extends NodeBase {
     if (this.subscript) {
       return `\\lim_{${this.subscript.childrenLatex()}}`;
     }
-    return '\\lim';
+    return "\\lim";
   }
 
   text(): string {
     if (this.subscript) {
       return `lim_${this.subscript.text()}`;
     }
-    return 'lim';
+    return "lim";
   }
 
   override mathspeak(): string {
     if (this.subscript) {
       return `limit as ${this.subscript.mathspeak()}`;
     }
-    return 'limit';
+    return "limit";
   }
 
   updateDom(): void {
     if (this.subscript) {
       const el = this.domElement;
-      const subEl = el.querySelector('.aphelion-lower-limit') as HTMLElement;
+      const subEl = el.querySelector(".aphelion-lower-limit") as HTMLElement;
       if (subEl) {
-        subEl.innerHTML = '';
+        subEl.innerHTML = "";
         this.subscript.updateDom();
         subEl.appendChild(this.subscript.domElement);
       }

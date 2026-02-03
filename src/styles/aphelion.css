@@ -12,7 +12,7 @@
 .aphelion-container {
   display: inline-block;
   position: relative;
-  font-family: 'Times New Roman', Symbola, serif;
+  font-family: "Times New Roman", Symbola, serif;
   font-size: 1em;
   line-height: 1;
   vertical-align: middle;
@@ -35,7 +35,9 @@
   color: #333;
   cursor: text;
   outline: none;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease,
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease,
     background-color 0.15s ease;
 }
 
@@ -245,18 +247,20 @@
 
 .aphelion-sqrt {
   display: inline-flex;
-  align-items: stretch;
-  vertical-align: middle;
+  align-items: baseline;
+  vertical-align: baseline;
   position: relative;
   white-space: nowrap;
 }
 
 .aphelion-sqrt-prefix {
-  font-size: 1.2em;
+  font-size: 1.15em;
   line-height: 1;
   display: inline-block;
   vertical-align: bottom;
-  margin-right: -0.05em;
+  transform-origin: bottom center;
+  position: relative;
+  top: 0.1em;
 }
 
 .aphelion-sqrt-stem {
@@ -265,16 +269,16 @@
 
 .aphelion-sqrt-content {
   display: inline-block;
-  padding: 0.15em 0.2em 0.05em 0.15em;
-  border-top: 1.5px solid currentColor;
+  padding: 0.1em 0.15em 0 0;
+  border-top: 1px solid currentColor;
   min-width: 0.6em;
   min-height: 1em;
-  vertical-align: bottom;
+  vertical-align: baseline;
 }
 
 .aphelion-nthroot {
   display: inline-flex;
-  align-items: flex-end;
+  align-items: baseline;
   white-space: nowrap;
 }
 
@@ -388,23 +392,24 @@
 
 .aphelion-text-sans,
 .aphelion-mathsf {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   font-style: normal;
 }
 
 .aphelion-text-mono,
 .aphelion-mathtt {
-  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+  font-family: "Consolas", "Monaco", "Courier New", monospace;
   font-style: normal;
 }
 
 .aphelion-mathcal {
-  font-family: 'Lucida Calligraphy', cursive;
+  font-family: "Lucida Calligraphy", cursive;
   font-style: normal;
 }
 
 .aphelion-mathfrak {
-  font-family: 'UnifrakturMaguntia', 'Fraktur', serif;
+  font-family: "UnifrakturMaguntia", "Fraktur", serif;
   font-style: normal;
 }
 
@@ -415,7 +420,7 @@
 }
 
 .aphelion-mathscr {
-  font-family: 'Brush Script MT', cursive;
+  font-family: "Brush Script MT", cursive;
   font-style: italic;
 }
 
@@ -497,24 +502,63 @@
 
 .aphelion-matrix-cell.aphelion-empty,
 .aphelion-matrix-cell .aphelion-empty {
+  color: #999;
+}
+
+/* ============================================
+   Binomial Coefficients
+   ============================================ */
+
+.aphelion-binom {
+  display: inline-flex;
+  align-items: center;
+  vertical-align: middle;
+}
+
+.aphelion-binom-paren {
+  font-size: 1.2em;
+  transform-origin: center;
+  margin: 0 0.05em;
+}
+
+.aphelion-binom-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.1em;
+}
+
+.aphelion-binom-numerator,
+.aphelion-binom-denominator {
+  display: flex;
+  align-items: center;
+  min-height: 0.8em;
+  font-size: 0.9em;
+}
+
+.aphelion-binom-numerator .aphelion-root-block,
+.aphelion-binom-denominator .aphelion-root-block {
+  display: inline;
+}
+.aphelion-matrix-cell .aphelion-empty {
   background: rgba(0, 0, 0, 0.05);
   border-radius: 2px;
 }
 
 /* Scale brackets based on matrix size */
-.aphelion-matrix[data-rows='1'] .aphelion-matrix-bracket {
+.aphelion-matrix[data-rows="1"] .aphelion-matrix-bracket {
   font-size: 1.2em;
 }
-.aphelion-matrix[data-rows='2'] .aphelion-matrix-bracket {
+.aphelion-matrix[data-rows="2"] .aphelion-matrix-bracket {
   font-size: 1.8em;
 }
-.aphelion-matrix[data-rows='3'] .aphelion-matrix-bracket {
+.aphelion-matrix[data-rows="3"] .aphelion-matrix-bracket {
   font-size: 2.4em;
 }
-.aphelion-matrix[data-rows='4'] .aphelion-matrix-bracket {
+.aphelion-matrix[data-rows="4"] .aphelion-matrix-bracket {
   font-size: 3em;
 }
-.aphelion-matrix[data-rows='5'] .aphelion-matrix-bracket {
+.aphelion-matrix[data-rows="5"] .aphelion-matrix-bracket {
   font-size: 3.6em;
 }
 
@@ -534,7 +578,8 @@
 
 .aphelion-text {
   font-style: normal;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
 /* ============================================
@@ -664,7 +709,9 @@
   background: white;
   font-size: 16px;
   cursor: pointer;
-  transition: background-color 0.15s ease, border-color 0.15s ease;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease;
 }
 
 .aphelion-toolbar-button:hover {
@@ -681,9 +728,24 @@
    ============================================ */
 
 @media (prefers-color-scheme: dark) {
+  .aphelion-container {
+    color: #e0e0e0;
+  }
+
+  .aphelion-math-field {
+    background: #2d2d2d;
+    color: #e0e0e0;
+    border-color: #555;
+  }
+
   .aphelion-math-field:hover {
     border-color: #777;
-    border-color: #777;
+  }
+
+  .aphelion-math-field.aphelion-focused,
+  .aphelion-container.aphelion-focused .aphelion-math-field {
+    border-color: #5fa3e0;
+    box-shadow: 0 0 0 3px rgba(95, 163, 224, 0.25);
   }
 
   .aphelion-cursor {
@@ -719,6 +781,10 @@
     border-color: rgba(100, 150, 220, 0.5);
   }
 
+  .aphelion-non-leaf:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+  }
+
   .aphelion-toolbar {
     background: #3d3d3d;
     border-color: #555;
@@ -733,6 +799,20 @@
   .aphelion-toolbar-button:hover {
     background-color: #5d5d5d;
     border-color: #777;
+  }
+
+  .aphelion-latex-command-input {
+    border-color: #b366cc;
+    background: rgba(153, 0, 204, 0.15);
+  }
+
+  .aphelion-latex-command-input.aphelion-hasCursor {
+    border-color: #5fa3e0;
+    background: rgba(95, 163, 224, 0.15);
+  }
+
+  .aphelion-latex-command-backslash {
+    color: #b366cc;
   }
 }
 
@@ -756,34 +836,36 @@
 
 /* Default: Times New Roman (traditional math look) */
 .aphelion-font-times {
-  font-family: 'Times New Roman', 'Cambria Math', Symbola, serif;
+  font-family: "Times New Roman", "Cambria Math", Symbola, serif;
 }
 
 /* Modern: STIX Two (high-quality open-source math font) */
 .aphelion-font-stix {
-  font-family: 'STIX Two Math', 'STIX Two Text', 'Times New Roman', serif;
+  font-family: "STIX Two Math", "STIX Two Text", "Times New Roman", serif;
 }
 
 /* Latin Modern (TeX-like appearance) */
 .aphelion-font-lm {
-  font-family: 'Latin Modern Math', 'Latin Modern Roman', 'Computer Modern',
-    serif;
+  font-family:
+    "Latin Modern Math", "Latin Modern Roman", "Computer Modern", serif;
 }
 
 /* Sans-serif option */
 .aphelion-font-sans {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
-    'Helvetica Neue', Arial, sans-serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue",
+    Arial, sans-serif;
 }
 
 /* Computer Modern (classic TeX font) */
 .aphelion-font-cm {
-  font-family: 'Computer Modern', 'Latin Modern Roman', 'Times New Roman', serif;
+  font-family:
+    "Computer Modern", "Latin Modern Roman", "Times New Roman", serif;
 }
 
 /* Fira Math (modern, clean) */
 .aphelion-font-fira {
-  font-family: 'Fira Math', 'Fira Sans', sans-serif;
+  font-family: "Fira Math", "Fira Sans", sans-serif;
 }
 
 /* Larger text sizes */

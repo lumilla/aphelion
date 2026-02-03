@@ -2,4 +2,4 @@
  * Aphelion - Controller Module Exports
  */
 
-export * from './controller';
+export * from "./controller";

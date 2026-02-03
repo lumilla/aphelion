@@ -4,8 +4,8 @@
  * A beautiful, interactive math editor for the modern web.
  */
 
-import { Controller } from '../controller/controller';
-import { EditorConfig, EditorHandlers } from '../core/types';
+import { Controller } from "../controller/controller";
+import { EditorConfig, EditorHandlers } from "../core/types";
 
 /**
  * Aphelion API interface.
@@ -14,13 +14,13 @@ export interface AphelionAPI {
   /** Create a MathField from an element */
   MathField: (
     element: HTMLElement,
-    config?: AphelionConfig
+    config?: AphelionConfig,
   ) => MathFieldInstance;
 
   /** Create a StaticMath display from an element */
   StaticMath: (
     element: HTMLElement,
-    config?: AphelionStaticConfig
+    config?: AphelionStaticConfig,
   ) => StaticMathInstance;
 
   /** Get an existing Aphelion instance from an element */
@@ -59,23 +59,23 @@ export interface AphelionConfig {
   spaceBehavesLikeTab?: boolean;
 
   /** Left-right behavior */
-  leftRightIntoCmdGoes?: 'up' | 'down';
+  leftRightIntoCmdGoes?: "up" | "down";
 
   /** Event handlers */
   handlers?: {
     edit?: (mathField: MathFieldInstance) => void;
     enter?: (mathField: MathFieldInstance) => void;
     moveOutOf?: (
-      direction: 'left' | 'right',
-      mathField: MathFieldInstance
+      direction: "left" | "right",
+      mathField: MathFieldInstance,
     ) => void;
     selectOutOf?: (
-      direction: 'left' | 'right',
-      mathField: MathFieldInstance
+      direction: "left" | "right",
+      mathField: MathFieldInstance,
     ) => void;
     deleteOutOf?: (
-      direction: 'left' | 'right',
-      mathField: MathFieldInstance
+      direction: "left" | "right",
+      mathField: MathFieldInstance,
     ) => void;
     upOutOf?: (mathField: MathFieldInstance) => void;
     downOutOf?: (mathField: MathFieldInstance) => void;
@@ -171,7 +171,7 @@ export interface StaticMathInstance extends AphelionInstance {
  */
 function createMathFieldInstance(
   controller: Controller,
-  element: HTMLElement
+  element: HTMLElement,
 ): MathFieldInstance {
   const instance: MathFieldInstance = {
     el: () => element,
@@ -182,7 +182,7 @@ function createMathFieldInstance(
       }
       controller.setLatex(value);
       return instance;
-    }) as MathFieldInstance['latex'],
+    }) as MathFieldInstance["latex"],
 
     html: () => controller.root.domElement.innerHTML,
 
@@ -208,50 +208,50 @@ function createMathFieldInstance(
 
     cmd: (command: string) => {
       switch (command) {
-        case '\\frac':
+        case "\\frac":
           controller.insertFraction();
           break;
-        case '\\sqrt':
+        case "\\sqrt":
           controller.insertSquareRoot();
           break;
-        case '^':
+        case "^":
           controller.insertSuperscript();
           break;
-        case '_':
+        case "_":
           controller.insertSubscript();
           break;
-        case '(':
+        case "(":
           controller.insertParentheses();
           break;
-        case '[':
+        case "[":
           controller.insertSquareBrackets();
           break;
-        case '{':
+        case "{":
           controller.insertCurlyBraces();
           break;
         // Text mode commands
-        case '\\text':
-        case '\\mathrm':
-        case '\\mathbf':
-        case '\\mathit':
-        case '\\mathsf':
-        case '\\mathtt':
-        case '\\mathcal':
-        case '\\mathbb':
-        case '\\mathfrak':
-        case '\\mathscr':
+        case "\\text":
+        case "\\mathrm":
+        case "\\mathbf":
+        case "\\mathit":
+        case "\\mathsf":
+        case "\\mathtt":
+        case "\\mathcal":
+        case "\\mathbb":
+        case "\\mathfrak":
+        case "\\mathscr":
           controller.insertTextMode(
             command as
-              | '\\text'
-              | '\\mathrm'
-              | '\\mathbf'
-              | '\\mathit'
-              | '\\mathsf'
-              | '\\mathtt'
-              | '\\mathcal'
-              | '\\mathbb'
-              | '\\mathfrak'
-              | '\\mathscr'
+              | "\\text"
+              | "\\mathrm"
+              | "\\mathbf"
+              | "\\mathit"
+              | "\\mathsf"
+              | "\\mathtt"
+              | "\\mathcal"
+              | "\\mathbb"
+              | "\\mathfrak"
+              | "\\mathscr",
           );
           break;
         default:
@@ -285,7 +285,7 @@ function createMathFieldInstance(
 
     keystroke: (key: string) => {
       // Simulate keystroke
-      const event = new KeyboardEvent('keydown', { key });
+      const event = new KeyboardEvent("keydown", { key });
       controller.textarea?.dispatchEvent(event);
       return instance;
     },
@@ -318,7 +318,7 @@ function createMathFieldInstance(
  */
 function createStaticMathInstance(
   controller: Controller,
-  element: HTMLElement
+  element: HTMLElement,
 ): StaticMathInstance {
   return {
     el: () => element,
@@ -329,7 +329,7 @@ function createStaticMathInstance(
       }
       controller.setLatex(value);
       return createStaticMathInstance(controller, element);
-    }) as StaticMathInstance['latex'],
+    }) as StaticMathInstance["latex"],
 
     html: () => controller.root.domElement.innerHTML,
 
@@ -347,11 +347,11 @@ function convertConfig(config: AphelionConfig): EditorConfig {
   const handlers: EditorHandlers = {};
 
   if (config.handlers?.edit) {
-    handlers.edit = config.handlers.edit as EditorHandlers['edit'];
+    handlers.edit = config.handlers.edit as EditorHandlers["edit"];
   }
 
   if (config.handlers?.enter) {
-    handlers.enter = config.handlers.enter as EditorHandlers['enter'];
+    handlers.enter = config.handlers.enter as EditorHandlers["enter"];
   }
 
   return {
@@ -375,12 +375,12 @@ export function getInterface(version: number = 3): AphelionAPI {
     return instances.get(element) ?? null;
   } as AphelionAPI;
 
-  api.version = '1.0.0';
+  api.version = "1.0.0";
   api.interfaceVersion = version;
 
   api.MathField = (
     element: HTMLElement,
-    config?: AphelionConfig
+    config?: AphelionConfig,
   ): MathFieldInstance => {
     // Check if already initialized
     const existing = instances.get(element);
@@ -401,7 +401,7 @@ export function getInterface(version: number = 3): AphelionAPI {
 
   api.StaticMath = (
     element: HTMLElement,
-    config?: AphelionStaticConfig
+    config?: AphelionStaticConfig,
   ): StaticMathInstance => {
     // Check if already initialized
     const existing = instances.get(element);
@@ -410,8 +410,8 @@ export function getInterface(version: number = 3): AphelionAPI {
     }
 
     // Get initial LaTeX from element content
-    const initialLatex = element.textContent ?? '';
-    element.textContent = '';
+    const initialLatex = element.textContent ?? "";
+    element.textContent = "";
 
     // Create controller (non-editable)
     const controller = new Controller({
@@ -422,7 +422,7 @@ export function getInterface(version: number = 3): AphelionAPI {
     controller.setLatex(initialLatex);
 
     // Remove textarea for static math
-    const textarea = element.querySelector('.aphelion-textarea');
+    const textarea = element.querySelector(".aphelion-textarea");
     textarea?.remove();
 
     // Create instance

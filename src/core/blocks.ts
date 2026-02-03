@@ -5,8 +5,8 @@
  * container for a MathField or StaticMath instance.
  */
 
-import { NodeBase } from './node';
-import { L, R } from './types';
+import { NodeBase } from "./node";
+import { L, R } from "./types";
 
 /**
  * A block that can contain math content.
@@ -14,12 +14,12 @@ import { L, R } from './types';
  */
 export class MathBlock extends NodeBase {
   /** CSS class for styling */
-  protected cssClass = 'aphelion-root-block';
+  protected cssClass = "aphelion-root-block";
 
   protected createDomElement(): HTMLElement {
-    const el = document.createElement('span');
+    const el = document.createElement("span");
     el.className = this.cssClass;
-    el.setAttribute('data-mq-block-id', String(this.id));
+    el.setAttribute("data-mq-block-id", String(this.id));
     return el;
   }
 
@@ -28,7 +28,7 @@ export class MathBlock extends NodeBase {
   }
 
   text(): string {
-    let result = '';
+    let result = "";
     for (const child of this.children()) {
       result += child.text();
     }
@@ -37,7 +37,7 @@ export class MathBlock extends NodeBase {
 
   updateDom(): void {
     const el = this.domElement;
-    el.innerHTML = '';
+    el.innerHTML = "";
 
     for (const child of this.children()) {
       child.updateDom();
@@ -46,9 +46,9 @@ export class MathBlock extends NodeBase {
 
     // Add empty block indicator if no children
     if (!this.hasChildren()) {
-      el.classList.add('aphelion-empty');
+      el.classList.add("aphelion-empty");
     } else {
-      el.classList.remove('aphelion-empty');
+      el.classList.remove("aphelion-empty");
     }
   }
 
@@ -67,7 +67,7 @@ export class MathBlock extends NodeBase {
     for (const child of this.children()) {
       parts.push(child.mathspeak());
     }
-    return parts.join(' ');
+    return parts.join(" ");
   }
 }
 
@@ -82,7 +82,7 @@ export class RootBlock extends MathBlock {
   /** The cursor in this root block */
   cursor?: unknown;
 
-  protected override cssClass = 'aphelion-root-block';
+  protected override cssClass = "aphelion-root-block";
 
   /**
    * Join all LaTeX content, wrapping in braces if needed for commands.
@@ -112,14 +112,14 @@ export class RootBlock extends MathBlock {
  * Has slightly different behavior than the root block.
  */
 export class InnerBlock extends MathBlock {
-  protected override cssClass = 'aphelion-inner-block';
+  protected override cssClass = "aphelion-inner-block";
 
   /** Whether this block should show a placeholder when empty */
   showPlaceholder = true;
 
   override updateDom(): void {
     const el = this.domElement;
-    el.innerHTML = '';
+    el.innerHTML = "";
 
     for (const child of this.children()) {
       child.updateDom();
@@ -129,15 +129,15 @@ export class InnerBlock extends MathBlock {
     // Add placeholder or empty class (not both - to avoid double box)
     if (!this.hasChildren()) {
       if (this.showPlaceholder) {
-        const placeholder = document.createElement('span');
-        placeholder.className = 'aphelion-placeholder';
+        const placeholder = document.createElement("span");
+        placeholder.className = "aphelion-placeholder";
         el.appendChild(placeholder);
-        el.classList.remove('aphelion-empty');
+        el.classList.remove("aphelion-empty");
       } else {
-        el.classList.add('aphelion-empty');
+        el.classList.add("aphelion-empty");
       }
     } else {
-      el.classList.remove('aphelion-empty');
+      el.classList.remove("aphelion-empty");
     }
   }
 

@@ -4,9 +4,9 @@
  * Nodes for subscript, superscript, and combined sub/superscript.
  */
 
-import { NodeBase } from '../core/node';
-import { InnerBlock } from '../core/blocks';
-import { L, R } from '../core/types';
+import { NodeBase } from "../core/node";
+import { InnerBlock } from "../core/blocks";
+import { L, R } from "../core/types";
 
 /**
  * A subscript node.
@@ -24,18 +24,18 @@ export class Subscript extends NodeBase {
   }
 
   protected createDomElement(): HTMLElement {
-    const el = document.createElement('span');
-    el.className = 'aphelion-supsub aphelion-non-leaf';
-    el.setAttribute('data-mq-node-id', String(this.id));
+    const el = document.createElement("span");
+    el.className = "aphelion-supsub aphelion-non-leaf";
+    el.setAttribute("data-mq-node-id", String(this.id));
 
-    const subEl = document.createElement('span');
-    subEl.className = 'aphelion-sub';
+    const subEl = document.createElement("span");
+    subEl.className = "aphelion-sub";
 
     // Zero-width space for sizing
-    const spacer = document.createElement('span');
-    spacer.style.display = 'inline-block';
-    spacer.style.width = '0';
-    spacer.textContent = '\u200B';
+    const spacer = document.createElement("span");
+    spacer.style.display = "inline-block";
+    spacer.style.width = "0";
+    spacer.textContent = "\u200B";
 
     el.appendChild(subEl);
     el.appendChild(spacer);
@@ -62,9 +62,9 @@ export class Subscript extends NodeBase {
 
   updateDom(): void {
     const el = this.domElement;
-    const subEl = el.querySelector('.aphelion-sub') as HTMLElement;
+    const subEl = el.querySelector(".aphelion-sub") as HTMLElement;
 
-    subEl.innerHTML = '';
+    subEl.innerHTML = "";
     this.sub.updateDom();
     subEl.appendChild(this.sub.domElement);
   }
@@ -86,12 +86,12 @@ export class Superscript extends NodeBase {
   }
 
   protected createDomElement(): HTMLElement {
-    const el = document.createElement('span');
-    el.className = 'aphelion-supsub aphelion-non-leaf aphelion-sup-only';
-    el.setAttribute('data-mq-node-id', String(this.id));
+    const el = document.createElement("span");
+    el.className = "aphelion-supsub aphelion-non-leaf aphelion-sup-only";
+    el.setAttribute("data-mq-node-id", String(this.id));
 
-    const supEl = document.createElement('span');
-    supEl.className = 'aphelion-sup';
+    const supEl = document.createElement("span");
+    supEl.className = "aphelion-sup";
 
     el.appendChild(supEl);
 
@@ -117,9 +117,9 @@ export class Superscript extends NodeBase {
 
   updateDom(): void {
     const el = this.domElement;
-    const supEl = el.querySelector('.aphelion-sup') as HTMLElement;
+    const supEl = el.querySelector(".aphelion-sup") as HTMLElement;
 
-    supEl.innerHTML = '';
+    supEl.innerHTML = "";
     this.sup.updateDom();
     supEl.appendChild(this.sup.domElement);
   }
@@ -152,15 +152,15 @@ export class SupSub extends NodeBase {
   }
 
   protected createDomElement(): HTMLElement {
-    const el = document.createElement('span');
-    el.className = 'aphelion-supsub aphelion-non-leaf';
-    el.setAttribute('data-mq-node-id', String(this.id));
+    const el = document.createElement("span");
+    el.className = "aphelion-supsub aphelion-non-leaf";
+    el.setAttribute("data-mq-node-id", String(this.id));
 
-    const supEl = document.createElement('span');
-    supEl.className = 'aphelion-sup';
+    const supEl = document.createElement("span");
+    supEl.className = "aphelion-sup";
 
-    const subEl = document.createElement('span');
-    subEl.className = 'aphelion-sub';
+    const subEl = document.createElement("span");
+    subEl.className = "aphelion-sub";
 
     el.appendChild(supEl);
     el.appendChild(subEl);
@@ -190,14 +190,14 @@ export class SupSub extends NodeBase {
 
   updateDom(): void {
     const el = this.domElement;
-    const supEl = el.querySelector('.aphelion-sup') as HTMLElement;
-    const subEl = el.querySelector('.aphelion-sub') as HTMLElement;
+    const supEl = el.querySelector(".aphelion-sup") as HTMLElement;
+    const subEl = el.querySelector(".aphelion-sub") as HTMLElement;
 
-    supEl.innerHTML = '';
+    supEl.innerHTML = "";
     this.sup.updateDom();
     supEl.appendChild(this.sup.domElement);
 
-    subEl.innerHTML = '';
+    subEl.innerHTML = "";
     this.sub.updateDom();
     subEl.appendChild(this.sub.domElement);
   }

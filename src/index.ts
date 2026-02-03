@@ -5,41 +5,41 @@
  */
 
 // Core exports
-export * from './core/types';
-export * from './core/node';
-export * from './core/blocks';
-export * from './core/cursor';
+export * from "./core/types";
+export * from "./core/node";
+export * from "./core/blocks";
+export * from "./core/cursor";
 
 // Command exports
-export * from './commands/symbol';
-export * from './commands/fraction';
-export * from './commands/sqrt';
-export * from './commands/supsub';
-export * from './commands/brackets';
-export * from './commands/text';
-export * from './commands/largeops';
+export * from "./commands/symbol";
+export * from "./commands/fraction";
+export * from "./commands/sqrt";
+export * from "./commands/supsub";
+export * from "./commands/brackets";
+export * from "./commands/text";
+export * from "./commands/largeops";
 
 // Parser exports
-export * from './parser/combinators';
-export * from './parser/ast';
-export * from './parser/latex';
+export * from "./parser/combinators";
+export * from "./parser/ast";
+export * from "./parser/latex";
 
 // Controller export
-export * from './controller/controller';
+export * from "./controller/controller";
 
 // React components
-export * from './components/hooks';
-export * from './components/MathField';
+export * from "./components/hooks";
+export * from "./components/MathField";
 
 // Public API
-export { Aphelion, getInterface } from './api';
+export { Aphelion, getInterface } from "./api";
 export type {
   AphelionAPI,
   AphelionConfig,
   MathFieldInstance,
   StaticMathInstance,
-} from './api';
+} from "./api";
 
 // Default export
-import { Aphelion } from './api';
+import { Aphelion } from "./api";
 export default Aphelion;

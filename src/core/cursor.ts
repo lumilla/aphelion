@@ -5,10 +5,10 @@
  * It can be between nodes, inside a block, or selecting a range of nodes.
  */
 
-import { NodeBase, NodeFragment } from './node';
-import { MathBlock, RootBlock } from './blocks';
-import { DirectionType, L, R, otherDir, EditorConfig } from './types';
-import { MathSymbol } from '../commands/symbol';
+import { NodeBase, NodeFragment } from "./node";
+import { MathBlock, RootBlock } from "./blocks";
+import { DirectionType, L, R, otherDir, EditorConfig } from "./types";
+import { MathSymbol } from "../commands/symbol";
 
 // Forward declaration for matrix cell detection
 interface MatrixCellLike extends MathBlock {
@@ -29,7 +29,7 @@ export class Selection extends NodeFragment {
   constructor(
     leftEnd: NodeBase,
     rightEnd: NodeBase,
-    direction: DirectionType = R
+    direction: DirectionType = R,
   ) {
     super(leftEnd, rightEnd);
     this.direction = direction;
@@ -54,7 +54,7 @@ export class Selection extends NodeFragment {
    */
   clearHighlight(): void {
     for (const node of this) {
-      node.domElement?.classList.remove('aphelion-selection');
+      node.domElement?.classList.remove("aphelion-selection");
     }
   }
 
@@ -63,7 +63,7 @@ export class Selection extends NodeFragment {
    */
   applyHighlight(): void {
     for (const node of this) {
-      node.domElement?.classList.add('aphelion-selection');
+      node.domElement?.classList.add("aphelion-selection");
     }
   }
 
@@ -75,7 +75,7 @@ export class Selection extends NodeFragment {
     for (const node of this) {
       parts.push(node.mathspeak());
     }
-    return parts.join(' ');
+    return parts.join(" ");
   }
 }
 
@@ -117,9 +117,9 @@ export class Cursor {
    */
   get domElement(): HTMLElement {
     if (!this._domElement) {
-      this._domElement = document.createElement('span');
-      this._domElement.className = 'aphelion-cursor';
-      this._domElement.textContent = '\u200B'; // Zero-width space for height
+      this._domElement = document.createElement("span");
+      this._domElement.className = "aphelion-cursor";
+      this._domElement.textContent = "\u200B"; // Zero-width space for height
     }
     return this._domElement;
   }
@@ -129,8 +129,8 @@ export class Cursor {
    */
   show(): this {
     // Temporarily stop blink animation during repositioning
-    const wasBlinking = this.domElement.classList.contains('aphelion-blink');
-    this.domElement.classList.remove('aphelion-blink');
+    const wasBlinking = this.domElement.classList.contains("aphelion-blink");
+    this.domElement.classList.remove("aphelion-blink");
 
     // Remove from previous position
     this.domElement.remove();
@@ -148,7 +148,7 @@ export class Cursor {
     if (wasBlinking) {
       // Force reflow and restart animation
       requestAnimationFrame(() => {
-        this.domElement.classList.add('aphelion-blink');
+        this.domElement.classList.add("aphelion-blink");
       });
     }
 
@@ -169,7 +169,7 @@ export class Cursor {
    */
   startBlink(): this {
     this.stopBlink();
-    this.domElement.classList.add('aphelion-blink');
+    this.domElement.classList.add("aphelion-blink");
     return this;
   }
 
@@ -177,7 +177,7 @@ export class Cursor {
    * Stop the cursor blinking animation.
    */
   stopBlink(): this {
-    this.domElement.classList.remove('aphelion-blink');
+    this.domElement.classList.remove("aphelion-blink");
     return this;
   }
 
@@ -249,7 +249,7 @@ export class Cursor {
    */
   private findBlockChild(
     node: NodeBase,
-    fromDir: DirectionType
+    fromDir: DirectionType,
   ): MathBlock | undefined {
     // Check the node's ends for blocks
     const child = node.ends[fromDir];
@@ -445,7 +445,7 @@ export class Cursor {
    * Check if a block is a matrix cell.
    */
   private isMatrixCell(block: MathBlock): boolean {
-    return 'row' in block && 'col' in block && 'matrix' in block;
+    return "row" in block && "col" in block && "matrix" in block;
   }
 
   /**
@@ -527,7 +527,7 @@ export class Cursor {
         this.selection = new Selection(
           dir === R ? this.selection.leftEnd : node,
           dir === R ? node : this.selection.rightEnd,
-          dir
+          dir,
         );
       } else {
         // Contracting
@@ -541,7 +541,7 @@ export class Cursor {
           this.selection = new Selection(
             dir === R ? node[R]! : this.selection.leftEnd,
             dir === R ? this.selection.rightEnd : node[L]!,
-            other
+            other,
           );
         }
       }
@@ -628,8 +628,8 @@ export class Cursor {
   private updateSelectionHighlight(): void {
     // Remove all existing highlights
     this.parent.domElement
-      .querySelectorAll('.aphelion-selection')
-      .forEach((el) => el.classList.remove('aphelion-selection'));
+      .querySelectorAll(".aphelion-selection")
+      .forEach((el) => el.classList.remove("aphelion-selection"));
 
     // Apply new highlights
     this.selection?.applyHighlight();
@@ -784,7 +784,7 @@ export class Cursor {
       // If so, don't delete the grandparent - just move out
       const siblingBlocks = this.getSiblingBlocks(parent, grandparent);
       const hasContentInSiblings = siblingBlocks.some(
-        (block) => block.ends[L] !== undefined
+        (block) => block.ends[L] !== undefined,
       );
 
       if (hasContentInSiblings) {
@@ -859,7 +859,7 @@ export class Cursor {
    */
   private getSiblingBlocks(
     currentBlock: MathBlock,
-    grandparent: NodeBase
+    grandparent: NodeBase,
   ): MathBlock[] {
     const siblings: MathBlock[] = [];
 

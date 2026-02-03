@@ -4,9 +4,9 @@
  * Custom hooks for using Aphelion in React applications.
  */
 
-import { useRef, useEffect, useCallback, useState } from 'react';
-import { Controller } from '../controller/controller';
-import { EditorConfig } from '../core/types';
+import { useRef, useEffect, useCallback, useState } from "react";
+import { Controller } from "../controller/controller";
+import { EditorConfig } from "../core/types";
 
 /**
  * Hook for creating and managing an Aphelion controller.
@@ -14,10 +14,10 @@ import { EditorConfig } from '../core/types';
 export function useAphelion(config: EditorConfig = {}) {
   const containerRef = useRef<HTMLDivElement>(null);
   const controllerRef = useRef<Controller | null>(null);
-  const [latex, setLatex] = useState('');
+  const [latex, setLatex] = useState("");
   const [focused, setFocused] = useState(false);
 
-  // Initialize controller
+  // Initialize controller (re-initializes when config changes)
   useEffect(() => {
     if (!containerRef.current) return;
 
@@ -40,16 +40,14 @@ export function useAphelion(config: EditorConfig = {}) {
     controller.init(containerRef.current);
     controllerRef.current = controller;
 
-    // Set initial latex if provided
-    if (config.handlers?.edit) {
-      setLatex(controller.latex());
-    }
+    // Initialize state from controller
+    setLatex(controller.latex());
 
     return () => {
       controller.detach();
       controllerRef.current = null;
     };
-  }, []);
+  }, [config]);
 
   // Focus/blur handlers
   const focus = useCallback(() => {
@@ -62,7 +60,7 @@ export function useAphelion(config: EditorConfig = {}) {
 
   // LaTeX getter/setter
   const getLatex = useCallback(() => {
-    return controllerRef.current?.latex() ?? '';
+    return controllerRef.current?.latex() ?? "";
   }, []);
 
   const setLatexValue = useCallback((value: string) => {
@@ -72,7 +70,7 @@ export function useAphelion(config: EditorConfig = {}) {
 
   // Text getter
   const getText = useCallback(() => {
-    return controllerRef.current?.text() ?? '';
+    return controllerRef.current?.text() ?? "";
   }, []);
 
   // Command insertion
@@ -81,29 +79,29 @@ export function useAphelion(config: EditorConfig = {}) {
     if (!controller) return;
 
     switch (cmd) {
-      case 'fraction':
-      case 'frac':
+      case "fraction":
+      case "frac":
         controller.insertFraction();
         break;
-      case 'sqrt':
+      case "sqrt":
         controller.insertSquareRoot();
         break;
-      case 'superscript':
-      case 'sup':
+      case "superscript":
+      case "sup":
         controller.insertSuperscript();
         break;
-      case 'subscript':
-      case 'sub':
+      case "subscript":
+      case "sub":
         controller.insertSubscript();
         break;
-      case 'parens':
-      case 'parentheses':
+      case "parens":
+      case "parentheses":
         controller.insertParentheses();
         break;
-      case 'brackets':
+      case "brackets":
         controller.insertSquareBrackets();
         break;
-      case 'braces':
+      case "braces":
         controller.insertCurlyBraces();
         break;
     }
@@ -129,14 +127,14 @@ export function useAphelion(config: EditorConfig = {}) {
 export function useControlledAphelion(
   value: string,
   onChange: (latex: string) => void,
-  config: EditorConfig = {}
+  config: EditorConfig = {},
 ) {
   const { containerRef, controller, setLatex, ...rest } = useAphelion({
     ...config,
     handlers: {
       ...config.handlers,
       edit: () => {
-        const latex = controller.current?.latex() ?? '';
+        const latex = controller.current?.latex() ?? "";
         onChange(latex);
       },
     },
@@ -147,7 +145,7 @@ export function useControlledAphelion(
     if (controller.current && controller.current.latex() !== value) {
       setLatex(value);
     }
-  }, [value, setLatex]);
+  }, [value, setLatex, controller]);
 
   return {
     containerRef,

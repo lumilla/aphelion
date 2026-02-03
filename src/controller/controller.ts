@@ -5,23 +5,24 @@
  * It coordinates between the tree, cursor, DOM, and input handling.
  */
 
-import { RootBlock, MathBlock } from '../core/blocks';
-import { Cursor } from '../core/cursor';
-import { NodeBase } from '../core/node';
-import { EditorConfig, L, R } from '../core/types';
-import { createSymbolFromChar, MathSymbol } from '../commands/symbol';
-import { Fraction } from '../commands/fraction';
-import { SquareRoot, NthRoot } from '../commands/sqrt';
-import { Subscript, Superscript, SupSub } from '../commands/supsub';
-import { Parentheses, SquareBrackets, CurlyBraces } from '../commands/brackets';
-import { OperatorName } from '../commands/text';
+import { RootBlock, MathBlock } from "../core/blocks";
+import { Cursor } from "../core/cursor";
+import { NodeBase } from "../core/node";
+import { EditorConfig, L, R } from "../core/types";
+import { createSymbolFromChar, MathSymbol } from "../commands/symbol";
+import { Fraction } from "../commands/fraction";
+import { SquareRoot, NthRoot } from "../commands/sqrt";
+import { Subscript, Superscript, SupSub } from "../commands/supsub";
+import { Parentheses, SquareBrackets, CurlyBraces } from "../commands/brackets";
+import { OperatorName } from "../commands/text";
+import { BinomialCoefficient } from "../commands/binom";
 import {
   LatexCommandInput,
   LATEX_COMMANDS,
-} from '../commands/latexCommandInput';
-import { Matrix } from '../commands/matrix';
-import { Accent, TextMode } from '../commands/accent';
-import { parseLatex, LatexNode } from '../parser';
+} from "../commands/latexCommandInput";
+import { Matrix } from "../commands/matrix";
+import { Accent, TextMode } from "../commands/accent";
+import { parseLatex, LatexNode } from "../parser";
 import {
   LargeOperator,
   Summation,
@@ -33,7 +34,7 @@ import {
   BigUnion,
   BigIntersection,
   Limit,
-} from '../commands/largeops';
+} from "../commands/largeops";
 
 /**
  * Controller for an Aphelion instance.
@@ -81,7 +82,7 @@ export class Controller {
    */
   init(container: HTMLElement): this {
     this.container = container;
-    container.classList.add('aphelion-container');
+    container.classList.add("aphelion-container");
 
     // Apply custom class if specified
     if (this.options.customClass) {
@@ -94,7 +95,7 @@ export class Controller {
     }
     if (this.options.fontSize) {
       container.style.fontSize =
-        typeof this.options.fontSize === 'number'
+        typeof this.options.fontSize === "number"
           ? `${this.options.fontSize}px`
           : this.options.fontSize;
     }
@@ -125,16 +126,16 @@ export class Controller {
    * Create the hidden textarea for capturing input.
    */
   private createTextarea(): void {
-    const textareaSpan = document.createElement('span');
-    textareaSpan.className = 'aphelion-textarea';
+    const textareaSpan = document.createElement("span");
+    textareaSpan.className = "aphelion-textarea";
 
-    const textarea = document.createElement('textarea');
-    textarea.setAttribute('autocapitalize', 'off');
-    textarea.setAttribute('autocomplete', 'off');
-    textarea.setAttribute('autocorrect', 'off');
-    textarea.setAttribute('spellcheck', 'false');
-    textarea.setAttribute('tabindex', '0');
-    textarea.setAttribute('aria-hidden', 'true');
+    const textarea = document.createElement("textarea");
+    textarea.setAttribute("autocapitalize", "off");
+    textarea.setAttribute("autocomplete", "off");
+    textarea.setAttribute("autocorrect", "off");
+    textarea.setAttribute("spellcheck", "false");
+    textarea.setAttribute("tabindex", "0");
+    textarea.setAttribute("aria-hidden", "true");
 
     textareaSpan.appendChild(textarea);
     this.container?.prepend(textareaSpan);
@@ -145,10 +146,10 @@ export class Controller {
    * Create ARIA live region for screen reader announcements.
    */
   private createAriaLive(): void {
-    const ariaLive = document.createElement('span');
-    ariaLive.className = 'aphelion-aria-live';
-    ariaLive.setAttribute('aria-live', 'polite');
-    ariaLive.setAttribute('aria-atomic', 'true');
+    const ariaLive = document.createElement("span");
+    ariaLive.className = "aphelion-aria-live";
+    ariaLive.setAttribute("aria-live", "polite");
+    ariaLive.setAttribute("aria-atomic", "true");
     this.container?.appendChild(ariaLive);
     this.ariaLive = ariaLive;
   }
@@ -160,20 +161,20 @@ export class Controller {
     if (!this.container || !this.textarea) return;
 
     // Focus management
-    this.container.addEventListener('mousedown', this.handleMouseDown);
-    this.textarea.addEventListener('focus', this.handleFocus);
-    this.textarea.addEventListener('blur', this.handleBlur);
+    this.container.addEventListener("mousedown", this.handleMouseDown);
+    this.textarea.addEventListener("focus", this.handleFocus);
+    this.textarea.addEventListener("blur", this.handleBlur);
 
     // Mouse drag selection
-    this.container.addEventListener('mousemove', this.handleMouseMove);
-    document.addEventListener('mouseup', this.handleMouseUp);
+    this.container.addEventListener("mousemove", this.handleMouseMove);
+    document.addEventListener("mouseup", this.handleMouseUp);
 
     // Keyboard input
-    this.textarea.addEventListener('keydown', this.handleKeyDown);
-    this.textarea.addEventListener('input', this.handleInput);
-    this.textarea.addEventListener('paste', this.handlePaste);
-    this.textarea.addEventListener('cut', this.handleCut);
-    this.textarea.addEventListener('copy', this.handleCopy);
+    this.textarea.addEventListener("keydown", this.handleKeyDown);
+    this.textarea.addEventListener("input", this.handleInput);
+    this.textarea.addEventListener("paste", this.handlePaste);
+    this.textarea.addEventListener("cut", this.handleCut);
+    this.textarea.addEventListener("copy", this.handleCopy);
   }
 
   /**
@@ -181,18 +182,18 @@ export class Controller {
    */
   detach(): void {
     if (this.container) {
-      this.container.removeEventListener('mousedown', this.handleMouseDown);
-      this.container.removeEventListener('mousemove', this.handleMouseMove);
+      this.container.removeEventListener("mousedown", this.handleMouseDown);
+      this.container.removeEventListener("mousemove", this.handleMouseMove);
     }
-    document.removeEventListener('mouseup', this.handleMouseUp);
+    document.removeEventListener("mouseup", this.handleMouseUp);
     if (this.textarea) {
-      this.textarea.removeEventListener('focus', this.handleFocus);
-      this.textarea.removeEventListener('blur', this.handleBlur);
-      this.textarea.removeEventListener('keydown', this.handleKeyDown);
-      this.textarea.removeEventListener('input', this.handleInput);
-      this.textarea.removeEventListener('paste', this.handlePaste);
-      this.textarea.removeEventListener('cut', this.handleCut);
-      this.textarea.removeEventListener('copy', this.handleCopy);
+      this.textarea.removeEventListener("focus", this.handleFocus);
+      this.textarea.removeEventListener("blur", this.handleBlur);
+      this.textarea.removeEventListener("keydown", this.handleKeyDown);
+      this.textarea.removeEventListener("input", this.handleInput);
+      this.textarea.removeEventListener("paste", this.handlePaste);
+      this.textarea.removeEventListener("cut", this.handleCut);
+      this.textarea.removeEventListener("copy", this.handleCopy);
     }
   }
 
@@ -263,14 +264,14 @@ export class Controller {
 
   private handleFocus = (): void => {
     this._focused = true;
-    this.container?.classList.add('aphelion-focused');
+    this.container?.classList.add("aphelion-focused");
     this.cursor.show().startBlink();
     this.options.handlers?.enter?.(this);
   };
 
   private handleBlur = (): void => {
     this._focused = false;
-    this.container?.classList.remove('aphelion-focused');
+    this.container?.classList.remove("aphelion-focused");
     this.cursor.hide();
   };
 
@@ -278,25 +279,25 @@ export class Controller {
     const key = this.getKeyName(e);
     // Normalize arrow key names
     const normalizedKey = key
-      .replace('ArrowLeft', 'Left')
-      .replace('ArrowRight', 'Right')
-      .replace('ArrowUp', 'Up')
-      .replace('ArrowDown', 'Down');
+      .replace("ArrowLeft", "Left")
+      .replace("ArrowRight", "Right")
+      .replace("ArrowUp", "Up")
+      .replace("ArrowDown", "Down");
 
     // If in command input mode, handle special keys
     if (this._commandInput) {
-      if (normalizedKey === 'Tab' || normalizedKey === 'Enter') {
+      if (normalizedKey === "Tab" || normalizedKey === "Enter") {
         e.preventDefault();
         this.finalizeCommandInput();
         return;
       }
-      if (normalizedKey === 'Escape') {
+      if (normalizedKey === "Escape") {
         e.preventDefault();
         // Cancel command input - remove the command input and restore cursor
         this.cancelCommandInput();
         return;
       }
-      if (normalizedKey === 'Backspace') {
+      if (normalizedKey === "Backspace") {
         e.preventDefault();
         // If command input is empty, cancel it; otherwise delete char
         if (this._commandInput.isEmpty()) {
@@ -313,14 +314,14 @@ export class Controller {
     // Handle special keys
     switch (normalizedKey) {
       // Shift+Arrow for selection
-      case 'Shift-Left':
+      case "Shift-Left":
         e.preventDefault();
         this.cursor.select(L);
         this.updateDom();
         this.announce();
         break;
 
-      case 'Shift-Right':
+      case "Shift-Right":
         e.preventDefault();
         this.cursor.select(R);
         this.updateDom();
@@ -328,23 +329,23 @@ export class Controller {
         break;
 
       // Ctrl+Arrow for word-level navigation
-      case 'Ctrl-Left':
-      case 'Meta-Left':
+      case "Ctrl-Left":
+      case "Meta-Left":
         e.preventDefault();
         this.cursor.moveToStart();
         this.announce();
         break;
 
-      case 'Ctrl-Right':
-      case 'Meta-Right':
+      case "Ctrl-Right":
+      case "Meta-Right":
         e.preventDefault();
         this.cursor.moveToEnd();
         this.announce();
         break;
 
       // Ctrl+Shift+Arrow for word-level selection
-      case 'Ctrl-Shift-Left':
-      case 'Meta-Shift-Left':
+      case "Ctrl-Shift-Left":
+      case "Meta-Shift-Left":
         e.preventDefault();
         // Select all to the left
         while (this.cursor[L]) {
@@ -354,8 +355,8 @@ export class Controller {
         this.announce();
         break;
 
-      case 'Ctrl-Shift-Right':
-      case 'Meta-Shift-Right':
+      case "Ctrl-Shift-Right":
+      case "Meta-Shift-Right":
         e.preventDefault();
         // Select all to the right
         while (this.cursor[R]) {
@@ -365,34 +366,34 @@ export class Controller {
         this.announce();
         break;
 
-      case 'Left':
+      case "Left":
         e.preventDefault();
         this.cursor.moveLeft();
         this.announce();
         break;
 
-      case 'Right':
+      case "Right":
         e.preventDefault();
         this.cursor.moveRight();
         this.announce();
         break;
 
-      case 'Up':
+      case "Up":
         e.preventDefault();
         this.cursor.moveUp();
         this.announce();
         break;
 
-      case 'Down':
+      case "Down":
         e.preventDefault();
         this.cursor.moveDown();
         this.announce();
         break;
 
-      case 'Home':
-      case 'Shift-Home':
+      case "Home":
+      case "Shift-Home":
         e.preventDefault();
-        if (normalizedKey.startsWith('Shift-')) {
+        if (normalizedKey.startsWith("Shift-")) {
           while (this.cursor[L]) {
             this.cursor.select(L);
           }
@@ -403,10 +404,10 @@ export class Controller {
         this.announce();
         break;
 
-      case 'End':
-      case 'Shift-End':
+      case "End":
+      case "Shift-End":
         e.preventDefault();
-        if (normalizedKey.startsWith('Shift-')) {
+        if (normalizedKey.startsWith("Shift-")) {
           while (this.cursor[R]) {
             this.cursor.select(R);
           }
@@ -417,83 +418,83 @@ export class Controller {
         this.announce();
         break;
 
-      case 'Backspace':
+      case "Backspace":
         e.preventDefault();
         this.cursor.backspace();
         this.updateDom();
         this.triggerEdit();
         break;
 
-      case 'Delete':
+      case "Delete":
         e.preventDefault();
         this.cursor.deleteForward();
         this.updateDom();
         this.triggerEdit();
         break;
 
-      case 'Enter':
+      case "Enter":
         e.preventDefault();
         // Could trigger submit or newline based on config
         break;
 
-      case 'Tab':
+      case "Tab":
         // Allow natural tab behavior, or could navigate between blocks
         break;
 
-      case 'Escape':
+      case "Escape":
         e.preventDefault();
         this.blur();
         break;
 
       // Ctrl/Cmd + key combinations
-      case 'Ctrl-a':
-      case 'Meta-a':
+      case "Ctrl-a":
+      case "Meta-a":
         e.preventDefault();
         this.cursor.selectAll();
-        this.announce('selected all');
+        this.announce("selected all");
         break;
 
-      case 'Ctrl-z':
-      case 'Meta-z':
+      case "Ctrl-z":
+      case "Meta-z":
         e.preventDefault();
         this.undo();
         break;
 
-      case 'Ctrl-y':
-      case 'Meta-y':
-      case 'Ctrl-Shift-z':
-      case 'Meta-Shift-z':
+      case "Ctrl-y":
+      case "Meta-y":
+      case "Ctrl-Shift-z":
+      case "Meta-Shift-z":
         e.preventDefault();
         this.redo();
         break;
 
       // Math shortcuts
-      case '/':
+      case "/":
         e.preventDefault();
         this.insertFraction();
         break;
 
-      case '^':
+      case "^":
         e.preventDefault();
         this.insertSuperscript();
         break;
 
-      case '_':
+      case "_":
         e.preventDefault();
         this.insertSubscript();
         break;
 
-      case '(':
+      case "(":
         e.preventDefault();
         this.insertParentheses();
         break;
 
-      case '[':
+      case "[":
         e.preventDefault();
         this.insertSquareBrackets();
         break;
 
-      case '{':
+      case "{":
         e.preventDefault();
         this.insertCurlyBraces();
         break;
@@ -509,7 +510,7 @@ export class Controller {
     if (!textarea) return;
 
     const text = textarea.value;
-    textarea.value = '';
+    textarea.value = "";
 
     if (text) {
       this.typedText(text);
@@ -518,7 +519,7 @@ export class Controller {
 
   private handlePaste = (e: ClipboardEvent): void => {
     e.preventDefault();
-    const text = e.clipboardData?.getData('text/plain');
+    const text = e.clipboardData?.getData("text/plain");
     if (text) {
       this.paste(text);
     }
@@ -528,7 +529,7 @@ export class Controller {
     e.preventDefault();
     const latex = this.getSelectionLatex();
     if (latex) {
-      e.clipboardData?.setData('text/plain', latex);
+      e.clipboardData?.setData("text/plain", latex);
       this.cursor.deleteSelection();
       this.updateDom();
       this.triggerEdit();
@@ -539,7 +540,7 @@ export class Controller {
     e.preventDefault();
     const latex = this.getSelectionLatex();
     if (latex) {
-      e.clipboardData?.setData('text/plain', latex);
+      e.clipboardData?.setData("text/plain", latex);
     }
   };
 
@@ -568,26 +569,26 @@ export class Controller {
 
     // Ignore spaces in math mode - LaTeX ignores spaces in math
     // To insert a visible space, use \  or \quad commands
-    if (char === ' ' || char === '\t') {
+    if (char === " " || char === "\t") {
       return;
     }
 
     // Check for special characters that should create commands
     switch (char) {
-      case '\\':
+      case "\\":
         this.startCommandInput();
         return;
-      case '/':
+      case "/":
         this.insertFraction();
         return;
-      case '^':
+      case "^":
         this.insertSuperscript();
         return;
-      case '_':
+      case "_":
         this.insertSubscript();
         return;
-      case '(':
-      case ')':
+      case "(":
+      case ")":
         this.insertParentheses();
         return;
     }
@@ -621,10 +622,10 @@ export class Controller {
 
     // Add focus class to the command input
     const wrapper = cmdInput.domElement.querySelector(
-      '.aphelion-latex-command-input'
+      ".aphelion-latex-command-input",
     );
     if (wrapper) {
-      wrapper.classList.add('aphelion-hasCursor');
+      wrapper.classList.add("aphelion-hasCursor");
     }
   }
 
@@ -635,7 +636,7 @@ export class Controller {
     if (!this._commandInput) return;
 
     // Check if this character should finalize the command
-    if (char === ' ' || char === '\t') {
+    if (char === " " || char === "\t") {
       this.finalizeCommandInput();
       // Don't insert space after finalizing - LaTeX ignores spaces in math mode
       return;
@@ -650,7 +651,7 @@ export class Controller {
       // Non-letter character - finalize and then type the char
       this.finalizeCommandInput();
       // Type the character after finalizing (if not a space)
-      if (char !== ' ' && char !== '\t') {
+      if (char !== " " && char !== "\t") {
         this.typeChar(char);
       }
     }
@@ -687,10 +688,10 @@ export class Controller {
         // Unknown command - insert as literal text in \text{}
         console.warn(`Unknown LaTeX command: \\${commandName}`);
         // Create a text node and fill it with the command name
-        const textNode = new TextMode('\\text');
+        const textNode = new TextMode("\\text");
         this.cursor.insert(textNode);
         // Fill the content with the command name (including backslash)
-        const fullCommand = '\\' + commandName;
+        const fullCommand = "\\" + commandName;
         // Move cursor into text node and type the content
         this.cursor.moveTo(textNode.content);
         for (const ch of fullCommand) {
@@ -711,27 +712,27 @@ export class Controller {
    */
   private executeCommand(
     cmdDef: (typeof LATEX_COMMANDS)[string],
-    name: string
+    name: string,
   ): void {
     switch (cmdDef.type) {
-      case 'fraction':
+      case "fraction":
         this.insertFraction();
         break;
-      case 'sqrt':
+      case "sqrt":
         this.insertSquareRoot();
         break;
-      case 'symbol': {
+      case "symbol": {
         if (cmdDef.symbol && cmdDef.latexCmd) {
           const symbol = new MathSymbol(
             cmdDef.symbol,
             cmdDef.latexCmd,
-            cmdDef.degradesTo
+            cmdDef.degradesTo,
           );
           this.cursor.insert(symbol);
         }
         break;
       }
-      case 'operator': {
+      case "operator": {
         // Operator names like sin, cos, log, etc.
         if (cmdDef.symbol && cmdDef.latexCmd) {
           // Check if it's a large operator (sum, prod, int) or a function name
@@ -743,7 +744,7 @@ export class Controller {
             if (largeOp.lower) {
               this.cursor.moveTo(largeOp.lower);
             }
-          } else if (cmdDef.latexCmd === '\\lim') {
+          } else if (cmdDef.latexCmd === "\\lim") {
             // Special case for \lim which has only subscript
             const limit = new Limit(true);
             this.cursor.insert(limit);
@@ -754,29 +755,29 @@ export class Controller {
             // Insert as an operator name (non-italic text)
             const operatorName = new OperatorName(
               cmdDef.symbol,
-              cmdDef.latexCmd
+              cmdDef.latexCmd,
             );
             this.cursor.insert(operatorName);
           }
         }
         break;
       }
-      case 'text': {
+      case "text": {
         // Legacy text handling - use textmode instead
-        const textNode = new TextMode('\\text');
+        const textNode = new TextMode("\\text");
         this.cursor.insert(textNode);
         this.cursor.moveTo(textNode.content);
         break;
       }
-      case 'textmode': {
+      case "textmode": {
         // Text mode commands like \text, \mathrm, etc.
-        const latexCmd = cmdDef.latexCmd || '\\text';
+        const latexCmd = cmdDef.latexCmd || "\\text";
         const textNode = new TextMode(latexCmd);
         this.cursor.insert(textNode);
         this.cursor.moveTo(textNode.content);
         break;
       }
-      case 'accent': {
+      case "accent": {
         // Accent commands like \vec, \bar, etc.
         if (cmdDef.accent && cmdDef.latexCmd) {
           const accentNode = new Accent(cmdDef.accent, cmdDef.latexCmd);
@@ -785,12 +786,19 @@ export class Controller {
         }
         break;
       }
-      case 'matrix': {
+      case "matrix": {
         // Create a matrix with the specified type, rows, and columns
-        const matrixType = cmdDef.matrixType || 'pmatrix';
+        const matrixType = cmdDef.matrixType || "pmatrix";
         const rows = cmdDef.rows || 2;
         const cols = cmdDef.cols || 2;
         this.insertMatrix(matrixType, rows, cols);
+        break;
+      }
+      case "binom": {
+        // Binomial coefficient
+        const binom = new BinomialCoefficient();
+        this.cursor.insert(binom);
+        this.cursor.moveTo(binom.numerator);
         break;
       }
       default:
@@ -851,28 +859,28 @@ export class Controller {
    */
   private insertAstNode(node: LatexNode): void {
     switch (node.type) {
-      case 'char':
-      case 'digit': {
+      case "char":
+      case "digit": {
         const symbol = createSymbolFromChar(node.value);
         this.cursor.insert(symbol);
         break;
       }
 
-      case 'symbol': {
+      case "symbol": {
         const symbol = new MathSymbol(
           node.value,
           node.command || node.value,
-          node.degradesTo
+          node.degradesTo,
         );
         this.cursor.insert(symbol);
         break;
       }
 
-      case 'space':
+      case "space":
         // Skip spaces or insert space symbol
         break;
 
-      case 'group': {
+      case "group": {
         // Insert content of the group
         for (const child of node.content) {
           this.insertAstNode(child);
@@ -880,11 +888,11 @@ export class Controller {
         break;
       }
 
-      case 'command':
+      case "command":
         this.insertCommandFromAst(node.name, node.args, node.optionalArgs);
         break;
 
-      case 'subscript': {
+      case "subscript": {
         // Check if base is a large operator command
         const subBaseCmd = this.getLargeOperatorFromBase(node.base);
         if (subBaseCmd) {
@@ -916,7 +924,7 @@ export class Controller {
         break;
       }
 
-      case 'superscript': {
+      case "superscript": {
         // Check if base is a large operator command
         const supBaseCmd = this.getLargeOperatorFromBase(node.base);
         if (supBaseCmd) {
@@ -939,7 +947,7 @@ export class Controller {
         break;
       }
 
-      case 'subsup': {
+      case "subsup": {
         // Check if base is a large operator command
         const subSupBaseCmd = this.getLargeOperatorFromBase(node.base);
         if (subSupBaseCmd) {
@@ -964,7 +972,7 @@ export class Controller {
         break;
       }
 
-      case 'text': {
+      case "text": {
         // Insert as plain text symbols
         for (const char of node.content) {
           const symbol = createSymbolFromChar(char);
@@ -973,17 +981,17 @@ export class Controller {
         break;
       }
 
-      case 'matrix': {
+      case "matrix": {
         // Create a matrix with the parsed structure
-        const matrixNode = node as import('../parser').LatexNode & {
+        const matrixNode = node as import("../parser").LatexNode & {
           matrixType:
-            | 'matrix'
-            | 'pmatrix'
-            | 'bmatrix'
-            | 'Bmatrix'
-            | 'vmatrix'
-            | 'Vmatrix';
-          cells: import('../parser').LatexNode[][][];
+            | "matrix"
+            | "pmatrix"
+            | "bmatrix"
+            | "Bmatrix"
+            | "vmatrix"
+            | "Vmatrix";
+          cells: import("../parser").LatexNode[][][];
         };
         const rows = matrixNode.cells.length || 2;
         const cols = matrixNode.cells[0]?.length || 2;
@@ -1004,7 +1012,7 @@ export class Controller {
       }
 
       default:
-        console.warn('Unknown AST node type:', (node as any).type);
+        console.warn("Unknown AST node type:", (node as any).type);
     }
   }
 
@@ -1033,12 +1041,12 @@ export class Controller {
   private insertCommandFromAst(
     name: string,
     args: LatexNode[][],
-    optionalArgs?: LatexNode[][]
+    optionalArgs?: LatexNode[][],
   ): void {
     switch (name) {
-      case '\\frac':
-      case '\\dfrac':
-      case '\\tfrac': {
+      case "\\frac":
+      case "\\dfrac":
+      case "\\tfrac": {
         const frac = new Fraction();
         this.cursor.insert(frac);
         // Fill numerator and denominator
@@ -1047,7 +1055,7 @@ export class Controller {
         break;
       }
 
-      case '\\sqrt': {
+      case "\\sqrt": {
         if (optionalArgs && optionalArgs[0] && optionalArgs[0].length > 0) {
           // Nth root
           const nthroot = new NthRoot();
@@ -1063,31 +1071,31 @@ export class Controller {
         break;
       }
 
-      case '\\left':
-      case '\\right':
+      case "\\left":
+      case "\\right":
         // Skip delimiter sizing commands
         break;
 
-      case '\\pm': {
-        const symbol = new MathSymbol('±', '\\pm');
+      case "\\pm": {
+        const symbol = new MathSymbol("±", "\\pm");
         this.cursor.insert(symbol);
         break;
       }
 
-      case '\\cdot': {
-        const symbol = new MathSymbol('·', '\\cdot');
+      case "\\cdot": {
+        const symbol = new MathSymbol("·", "\\cdot");
         this.cursor.insert(symbol);
         break;
       }
 
-      case '\\times': {
-        const symbol = new MathSymbol('×', '\\times');
+      case "\\times": {
+        const symbol = new MathSymbol("×", "\\times");
         this.cursor.insert(symbol);
         break;
       }
 
       // Large operators with limits
-      case '\\sum': {
+      case "\\sum": {
         const sum = new Summation(true);
         this.cursor.insert(sum);
         // Fill lower/upper if args present (from _{}^{})
@@ -1096,7 +1104,7 @@ export class Controller {
         break;
       }
 
-      case '\\prod': {
+      case "\\prod": {
         const prod = new Product(true);
         this.cursor.insert(prod);
         if (args[0] && prod.lower) this.fillBlockWithNodes(prod.lower, args[0]);
@@ -1104,7 +1112,7 @@ export class Controller {
         break;
       }
 
-      case '\\int': {
+      case "\\int": {
         const integral = new Integral(true);
         this.cursor.insert(integral);
         if (args[0] && integral.lower)
@@ -1114,19 +1122,19 @@ export class Controller {
         break;
       }
 
-      case '\\iint': {
+      case "\\iint": {
         const integral = new DoubleIntegral(true);
         this.cursor.insert(integral);
         break;
       }
 
-      case '\\iiint': {
+      case "\\iiint": {
         const integral = new TripleIntegral(true);
         this.cursor.insert(integral);
         break;
       }
 
-      case '\\oint': {
+      case "\\oint": {
         const integral = new ContourIntegral(true);
         this.cursor.insert(integral);
         if (args[0] && integral.lower)
@@ -1136,7 +1144,7 @@ export class Controller {
         break;
       }
 
-      case '\\bigcup': {
+      case "\\bigcup": {
         const union = new BigUnion(true);
         this.cursor.insert(union);
         if (args[0] && union.lower)
@@ -1146,7 +1154,7 @@ export class Controller {
         break;
       }
 
-      case '\\bigcap': {
+      case "\\bigcap": {
         const intersection = new BigIntersection(true);
         this.cursor.insert(intersection);
         if (args[0] && intersection.lower)
@@ -1156,11 +1164,78 @@ export class Controller {
         break;
       }
 
-      case '\\lim': {
+      case "\\lim": {
         const limit = new Limit(true);
         this.cursor.insert(limit);
         if (args[0] && limit.subscript)
           this.fillBlockWithNodes(limit.subscript, args[0]);
+        break;
+      }
+
+      // Accents like \hat, \bar, \vec, etc.
+      case "\\hat":
+      case "\\bar":
+      case "\\vec":
+      case "\\dot":
+      case "\\ddot":
+      case "\\tilde":
+      case "\\widehat":
+      case "\\widetilde":
+      case "\\overline":
+      case "\\underline":
+      case "\\overbrace":
+      case "\\underbrace": {
+        const accentMap: Record<string, string> = {
+          "\\vec": "\u20d7",
+          "\\bar": "\u0304",
+          "\\overline": "\u0304",
+          "\\underline": "\u0332",
+          "\\hat": "\u0302",
+          "\\dot": "\u0307",
+          "\\ddot": "\u0308",
+          "\\tilde": "\u0303",
+          "\\widehat": "\u0302",
+          "\\widetilde": "\u0303",
+          "\\overbrace": "\u23de",
+          "\\underbrace": "\u23df",
+        };
+        const accentChar = accentMap[name] || "\u0304";
+        const accentNode = new Accent(accentChar, name);
+        this.cursor.insert(accentNode);
+        if (args[0]) this.fillBlockWithNodes(accentNode.content, args[0]);
+        break;
+      }
+
+      // Text mode commands (\\text, \\\mathrm, \\\mathit, \\\mathbb, etc.)
+      case "\\text":
+      case "\\textrm":
+      case "\\textbf":
+      case "\\textit":
+      case "\\textsf":
+      case "\\texttt":
+      case "\\mathrm":
+      case "\\mathit":
+      case "\\mathbf":
+      case "\\mathsf":
+      case "\\mathtt":
+      case "\\mathcal":
+      case "\\mathbb":
+      case "\\mathfrak":
+      case "\\mathscr": {
+        const latexCmd = name;
+        const textNode = new TextMode(latexCmd);
+        this.cursor.insert(textNode);
+        if (args[0]) this.fillBlockWithNodes(textNode.content, args[0]);
+        break;
+      }
+
+      // Binomial coefficients
+      case "\\binom":
+      case "\\choose": {
+        const binom = new BinomialCoefficient();
+        this.cursor.insert(binom);
+        if (args[0]) this.fillBlockWithNodes(binom.numerator, args[0]);
+        if (args[1]) this.fillBlockWithNodes(binom.denominator, args[1]);
         break;
       }
 
@@ -1171,7 +1246,7 @@ export class Controller {
           const symbol = new MathSymbol(symbolValue, name);
           this.cursor.insert(symbol);
         } else {
-          console.warn('Unknown command:', name);
+          console.warn("Unknown command:", name);
         }
       }
     }
@@ -1182,53 +1257,53 @@ export class Controller {
    */
   private getSymbolForCommand(cmd: string): string | undefined {
     const symbols: Record<string, string> = {
-      '\\alpha': 'α',
-      '\\beta': 'β',
-      '\\gamma': 'γ',
-      '\\delta': 'δ',
-      '\\epsilon': 'ε',
-      '\\zeta': 'ζ',
-      '\\eta': 'η',
-      '\\theta': 'θ',
-      '\\iota': 'ι',
-      '\\kappa': 'κ',
-      '\\lambda': 'λ',
-      '\\mu': 'μ',
-      '\\nu': 'ν',
-      '\\xi': 'ξ',
-      '\\pi': 'π',
-      '\\rho': 'ρ',
-      '\\sigma': 'σ',
-      '\\tau': 'τ',
-      '\\upsilon': 'υ',
-      '\\phi': 'φ',
-      '\\chi': 'χ',
-      '\\psi': 'ψ',
-      '\\omega': 'ω',
-      '\\pm': '±',
-      '\\mp': '∓',
-      '\\times': '×',
-      '\\div': '÷',
-      '\\cdot': '·',
-      '\\leq': '≤',
-      '\\le': '≤',
-      '\\geq': '≥',
-      '\\ge': '≥',
-      '\\neq': '≠',
-      '\\ne': '≠',
-      '\\approx': '≈',
-      '\\equiv': '≡',
-      '\\infty': '∞',
-      '\\partial': '∂',
-      '\\nabla': '∇',
-      '\\int': '∫',
-      '\\sum': '∑',
-      '\\prod': '∏',
-      '\\rightarrow': '→',
-      '\\leftarrow': '←',
-      '\\to': '→',
-      '\\Rightarrow': '⇒',
-      '\\Leftarrow': '⇐',
+      "\\alpha": "α",
+      "\\beta": "β",
+      "\\gamma": "γ",
+      "\\delta": "δ",
+      "\\epsilon": "ε",
+      "\\zeta": "ζ",
+      "\\eta": "η",
+      "\\theta": "θ",
+      "\\iota": "ι",
+      "\\kappa": "κ",
+      "\\lambda": "λ",
+      "\\mu": "μ",
+      "\\nu": "ν",
+      "\\xi": "ξ",
+      "\\pi": "π",
+      "\\rho": "ρ",
+      "\\sigma": "σ",
+      "\\tau": "τ",
+      "\\upsilon": "υ",
+      "\\phi": "φ",
+      "\\chi": "χ",
+      "\\psi": "ψ",
+      "\\omega": "ω",
+      "\\pm": "±",
+      "\\mp": "∓",
+      "\\times": "×",
+      "\\div": "÷",
+      "\\cdot": "·",
+      "\\leq": "≤",
+      "\\le": "≤",
+      "\\geq": "≥",
+      "\\ge": "≥",
+      "\\neq": "≠",
+      "\\ne": "≠",
+      "\\approx": "≈",
+      "\\equiv": "≡",
+      "\\infty": "∞",
+      "\\partial": "∂",
+      "\\nabla": "∇",
+      "\\int": "∫",
+      "\\sum": "∑",
+      "\\prod": "∏",
+      "\\rightarrow": "→",
+      "\\leftarrow": "←",
+      "\\to": "→",
+      "\\Rightarrow": "⇒",
+      "\\Leftarrow": "⇐",
     };
     return symbols[cmd];
   }
@@ -1237,14 +1312,14 @@ export class Controller {
    * Large operator commands that should use LargeOperator nodes.
    */
   private readonly LARGE_OPERATOR_COMMANDS = new Set([
-    '\\sum',
-    '\\prod',
-    '\\int',
-    '\\iint',
-    '\\iiint',
-    '\\oint',
-    '\\bigcup',
-    '\\bigcap',
+    "\\sum",
+    "\\prod",
+    "\\int",
+    "\\iint",
+    "\\iiint",
+    "\\oint",
+    "\\bigcup",
+    "\\bigcap",
   ]);
 
   /**
@@ -1254,22 +1329,22 @@ export class Controller {
     if (!base || base.length !== 1) return undefined;
     const node = base[0];
     if (
-      node?.type === 'command' &&
+      node?.type === "command" &&
       this.LARGE_OPERATOR_COMMANDS.has(node.name)
     ) {
       return node.name;
     }
-    if (node?.type === 'symbol') {
+    if (node?.type === "symbol") {
       // Check if it's a symbol that corresponds to a large operator
       const symbolToCmd: Record<string, string> = {
-        '∑': '\\sum',
-        '∏': '\\prod',
-        '∫': '\\int',
-        '∬': '\\iint',
-        '∭': '\\iiint',
-        '∮': '\\oint',
-        '⋃': '\\bigcup',
-        '⋂': '\\bigcap',
+        "∑": "\\sum",
+        "∏": "\\prod",
+        "∫": "\\int",
+        "∬": "\\iint",
+        "∭": "\\iiint",
+        "∮": "\\oint",
+        "⋃": "\\bigcup",
+        "⋂": "\\bigcap",
       };
       const cmd = symbolToCmd[node.value];
       if (cmd) return cmd;
@@ -1283,11 +1358,11 @@ export class Controller {
   private getLimitFromBase(base?: LatexNode[]): boolean {
     if (!base || base.length !== 1) return false;
     const node = base[0];
-    if (node?.type === 'command' && node.name === '\\lim') {
+    if (node?.type === "command" && node.name === "\\lim") {
       return true;
     }
     // Also check for the text "lim" as a symbol
-    if (node?.type === 'symbol' && node.value === 'lim') {
+    if (node?.type === "symbol" && node.value === "lim") {
       return true;
     }
     return false;
@@ -1298,24 +1373,24 @@ export class Controller {
    */
   private createLargeOperator(
     cmd: string,
-    withLimits: boolean
+    withLimits: boolean,
   ): LargeOperator | undefined {
     switch (cmd) {
-      case '\\sum':
+      case "\\sum":
         return new Summation(withLimits);
-      case '\\prod':
+      case "\\prod":
         return new Product(withLimits);
-      case '\\int':
+      case "\\int":
         return new Integral(withLimits);
-      case '\\iint':
+      case "\\iint":
         return new DoubleIntegral(withLimits);
-      case '\\iiint':
+      case "\\iiint":
         return new TripleIntegral(withLimits);
-      case '\\oint':
+      case "\\oint":
         return new ContourIntegral(withLimits);
-      case '\\bigcup':
+      case "\\bigcup":
         return new BigUnion(withLimits);
-      case '\\bigcap':
+      case "\\bigcap":
         return new BigIntersection(withLimits);
       default:
         return undefined;
@@ -1408,16 +1483,16 @@ export class Controller {
    */
   insertTextMode(
     latexCmd:
-      | '\\text'
-      | '\\mathrm'
-      | '\\mathbf'
-      | '\\mathit'
-      | '\\mathsf'
-      | '\\mathtt'
-      | '\\mathcal'
-      | '\\mathbb'
-      | '\\mathfrak'
-      | '\\mathscr'
+      | "\\text"
+      | "\\mathrm"
+      | "\\mathbf"
+      | "\\mathit"
+      | "\\mathsf"
+      | "\\mathtt"
+      | "\\mathcal"
+      | "\\mathbb"
+      | "\\mathfrak"
+      | "\\mathscr",
   ): void {
     const textNode = new TextMode(latexCmd);
     this.cursor.insert(textNode);
@@ -1431,14 +1506,14 @@ export class Controller {
    */
   insertMatrix(
     matrixType:
-      | 'matrix'
-      | 'pmatrix'
-      | 'bmatrix'
-      | 'Bmatrix'
-      | 'vmatrix'
-      | 'Vmatrix' = 'pmatrix',
+      | "matrix"
+      | "pmatrix"
+      | "bmatrix"
+      | "Bmatrix"
+      | "vmatrix"
+      | "Vmatrix" = "pmatrix",
     rows: number = 2,
-    cols: number = 2
+    cols: number = 2,
   ): void {
     const matrix = new Matrix(matrixType, rows, cols);
     this.cursor.insert(matrix);
@@ -1470,7 +1545,7 @@ export class Controller {
       this.cursor.moveTo(this.root);
       this.insertParsedNodes(nodes);
     } catch (e) {
-      console.warn('Failed to parse LaTeX:', e);
+      console.warn("Failed to parse LaTeX:", e);
     }
 
     this.cursor.moveToEnd();
@@ -1483,7 +1558,7 @@ export class Controller {
    * Get LaTeX of current selection.
    */
   getSelectionLatex(): string {
-    return this.cursor.selection?.latex() ?? '';
+    return this.cursor.selection?.latex() ?? "";
   }
 
   // --- Text Methods ---
@@ -1546,7 +1621,7 @@ export class Controller {
   setFontSize(size: string | number): this {
     if (this.container) {
       this.container.style.fontSize =
-        typeof size === 'number' ? `${size}px` : size;
+        typeof size === "number" ? `${size}px` : size;
     }
     return this;
   }
@@ -1555,14 +1630,14 @@ export class Controller {
    * Get the current font family.
    */
   getFontFamily(): string {
-    return this.container?.style.fontFamily || '';
+    return this.container?.style.fontFamily || "";
   }
 
   /**
    * Get the current font size.
    */
   getFontSize(): string {
-    return this.container?.style.fontSize || '';
+    return this.container?.style.fontSize || "";
   }
 
   /**
@@ -1574,7 +1649,7 @@ export class Controller {
 
     // Traverse up to find a node with data-mq-node-id or a block
     while (element && element !== this.container) {
-      const nodeId = element.getAttribute('data-mq-node-id');
+      const nodeId = element.getAttribute("data-mq-node-id");
       if (nodeId) {
         const node = this.findNodeById(parseInt(nodeId, 10));
         if (node) {
@@ -1585,8 +1660,8 @@ export class Controller {
 
       // Check if this is a block element
       if (
-        element.classList.contains('aphelion-root-block') ||
-        element.classList.contains('aphelion-inner-block')
+        element.classList.contains("aphelion-root-block") ||
+        element.classList.contains("aphelion-inner-block")
       ) {
         this.seekInBlock(element, clientX);
         return;
@@ -1595,7 +1670,7 @@ export class Controller {
       element = element.parentElement;
     }
 
-    // Fallback: position cursor at end of root
+    // If all else fails, move cursor to end and cry a little
     this.cursor.moveToEnd();
     this.cursor.show();
   }
@@ -1605,7 +1680,7 @@ export class Controller {
    */
   private findNodeById(
     id: number,
-    node: NodeBase = this.root
+    node: NodeBase = this.root,
   ): NodeBase | undefined {
     if (node.id === id) return node;
 
@@ -1633,7 +1708,7 @@ export class Controller {
   private seekToNode(
     node: NodeBase,
     clientX: number,
-    element: HTMLElement
+    element: HTMLElement,
   ): void {
     const rect = element.getBoundingClientRect();
     const midX = rect.left + rect.width / 2;
@@ -1674,8 +1749,8 @@ export class Controller {
     // Filter out non-node elements (like cursor)
     const nodeElements = children.filter(
       (el) =>
-        el.hasAttribute('data-mq-node-id') ||
-        el.classList.contains('aphelion-inner-block')
+        el.hasAttribute("data-mq-node-id") ||
+        el.classList.contains("aphelion-inner-block"),
     );
 
     if (nodeElements.length === 0) {
@@ -1704,7 +1779,7 @@ export class Controller {
     if (!block) return;
 
     if (insertBefore) {
-      const nodeId = insertBefore.getAttribute('data-mq-node-id');
+      const nodeId = insertBefore.getAttribute("data-mq-node-id");
       if (nodeId) {
         const node = this.findNodeById(parseInt(nodeId, 10));
         if (node) {
@@ -1723,7 +1798,7 @@ export class Controller {
    * Find the MathBlock corresponding to a DOM element.
    */
   private findBlockForElement(element: HTMLElement): MathBlock | undefined {
-    if (element.classList.contains('aphelion-root-block')) {
+    if (element.classList.contains("aphelion-root-block")) {
       return this.root;
     }
 
@@ -1736,7 +1811,7 @@ export class Controller {
    */
   private findBlockInTree(
     node: NodeBase,
-    element: HTMLElement
+    element: HTMLElement,
   ): MathBlock | undefined {
     // Check this node's inner blocks
     for (const child of node.children()) {
@@ -1795,7 +1870,7 @@ export class Controller {
       this.historyIndex--;
       const latex = this.history[this.historyIndex]!;
       this.setLatexWithoutHistory(latex);
-      this.announce('undo');
+      this.announce("undo");
     }
   }
 
@@ -1807,7 +1882,7 @@ export class Controller {
       this.historyIndex++;
       const latex = this.history[this.historyIndex]!;
       this.setLatexWithoutHistory(latex);
-      this.announce('redo');
+      this.announce("redo");
     }
   }
 
@@ -1869,7 +1944,7 @@ export class Controller {
     } else if (right) {
       return `at start, before ${right.mathspeak()}`;
     } else {
-      return 'empty';
+      return "empty";
     }
   }
 
@@ -1879,12 +1954,12 @@ export class Controller {
    * Get the key name from a keyboard event.
    */
   private getKeyName(e: KeyboardEvent): string {
-    let name = '';
+    let name = "";
 
-    if (e.ctrlKey) name += 'Ctrl-';
-    if (e.altKey) name += 'Alt-';
-    if (e.shiftKey) name += 'Shift-';
-    if (e.metaKey) name += 'Meta-';
+    if (e.ctrlKey) name += "Ctrl-";
+    if (e.altKey) name += "Alt-";
+    if (e.shiftKey) name += "Shift-";
+    if (e.metaKey) name += "Meta-";
 
     name += e.key;
 

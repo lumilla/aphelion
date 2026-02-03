@@ -4,7 +4,7 @@
  * A node representing a single character or symbol in the math tree.
  */
 
-import { NodeBase } from '../core/node';
+import { NodeBase } from "../core/node";
 
 /**
  * A single character or symbol in the math tree.
@@ -20,7 +20,7 @@ export class MathSymbol extends NodeBase {
   readonly degradesTo?: string;
 
   /** CSS class for styling */
-  protected cssClass = 'aphelion-symbol';
+  protected cssClass = "aphelion-symbol";
 
   constructor(char: string, latexCmd?: string, degradesTo?: string) {
     super();
@@ -30,10 +30,10 @@ export class MathSymbol extends NodeBase {
   }
 
   protected createDomElement(): HTMLElement {
-    const el = document.createElement('span');
+    const el = document.createElement("span");
     el.className = this.cssClass;
     el.textContent = this.char;
-    el.setAttribute('data-mq-node-id', String(this.id));
+    el.setAttribute("data-mq-node-id", String(this.id));
     return el;
   }
 
@@ -71,7 +71,7 @@ export class MathSymbol extends NodeBase {
  * A variable (single letter, rendered in italics).
  */
 export class Variable extends MathSymbol {
-  protected override cssClass = 'aphelion-variable';
+  protected override cssClass = "aphelion-variable";
 
   constructor(letter: string) {
     super(letter);
@@ -79,7 +79,7 @@ export class Variable extends MathSymbol {
 
   protected override createDomElement(): HTMLElement {
     const el = super.createDomElement();
-    el.classList.add('aphelion-italic');
+    el.classList.add("aphelion-italic");
     return el;
   }
 }
@@ -88,7 +88,7 @@ export class Variable extends MathSymbol {
  * A digit (0-9).
  */
 export class Digit extends MathSymbol {
-  protected override cssClass = 'aphelion-digit';
+  protected override cssClass = "aphelion-digit";
 
   constructor(digit: string) {
     super(digit);
@@ -99,7 +99,7 @@ export class Digit extends MathSymbol {
  * A binary operator (+, -, ×, ÷, etc.).
  */
 export class BinaryOperator extends MathSymbol {
-  protected override cssClass = 'aphelion-binary-operator';
+  protected override cssClass = "aphelion-binary-operator";
 
   constructor(char: string, latexCmd?: string) {
     super(char, latexCmd);
@@ -107,7 +107,7 @@ export class BinaryOperator extends MathSymbol {
 
   protected override createDomElement(): HTMLElement {
     const el = super.createDomElement();
-    el.classList.add('aphelion-operator');
+    el.classList.add("aphelion-operator");
     return el;
   }
 
@@ -121,7 +121,7 @@ export class BinaryOperator extends MathSymbol {
  * A relation (=, <, >, ≤, ≥, etc.).
  */
 export class Relation extends MathSymbol {
-  protected override cssClass = 'aphelion-relation';
+  protected override cssClass = "aphelion-relation";
 
   constructor(char: string, latexCmd?: string, degradesTo?: string) {
     super(char, latexCmd, degradesTo);
@@ -145,14 +145,14 @@ export class Relation extends MathSymbol {
  * Punctuation (comma, semicolon, etc.).
  */
 export class Punctuation extends MathSymbol {
-  protected override cssClass = 'aphelion-punctuation';
+  protected override cssClass = "aphelion-punctuation";
 
   constructor(char: string) {
     super(char);
   }
 
   override text(): string {
-    return this.char + ' ';
+    return this.char + " ";
   }
 }
 
@@ -167,84 +167,84 @@ export const Symbols = {
   variable: (v: string) => new Variable(v),
 
   // Basic operators
-  plus: () => new BinaryOperator('+'),
-  minus: () => new BinaryOperator('−', '-'),
-  times: () => new BinaryOperator('×', '\\times'),
-  div: () => new BinaryOperator('÷', '\\div'),
-  cdot: () => new BinaryOperator('·', '\\cdot'),
-  pm: () => new BinaryOperator('±', '\\pm'),
-  mp: () => new BinaryOperator('∓', '\\mp'),
+  plus: () => new BinaryOperator("+"),
+  minus: () => new BinaryOperator("−", "-"),
+  times: () => new BinaryOperator("×", "\\times"),
+  div: () => new BinaryOperator("÷", "\\div"),
+  cdot: () => new BinaryOperator("·", "\\cdot"),
+  pm: () => new BinaryOperator("±", "\\pm"),
+  mp: () => new BinaryOperator("∓", "\\mp"),
 
   // Relations (with degradation support)
-  equals: () => new Relation('='),
-  lt: () => new Relation('<'),
-  gt: () => new Relation('>'),
-  leq: () => new Relation('≤', '\\leq', '<'),
-  geq: () => new Relation('≥', '\\geq', '>'),
-  neq: () => new Relation('≠', '\\neq', '='),
-  approx: () => new Relation('≈', '\\approx'),
-  equiv: () => new Relation('≡', '\\equiv'),
-  sim: () => new Relation('∼', '\\sim'),
+  equals: () => new Relation("="),
+  lt: () => new Relation("<"),
+  gt: () => new Relation(">"),
+  leq: () => new Relation("≤", "\\leq", "<"),
+  geq: () => new Relation("≥", "\\geq", ">"),
+  neq: () => new Relation("≠", "\\neq", "="),
+  approx: () => new Relation("≈", "\\approx"),
+  equiv: () => new Relation("≡", "\\equiv"),
+  sim: () => new Relation("∼", "\\sim"),
 
   // Greek letters
-  alpha: () => new MathSymbol('α', '\\alpha'),
-  beta: () => new MathSymbol('β', '\\beta'),
-  gamma: () => new MathSymbol('γ', '\\gamma'),
-  delta: () => new MathSymbol('δ', '\\delta'),
-  epsilon: () => new MathSymbol('ε', '\\epsilon'),
-  theta: () => new MathSymbol('θ', '\\theta'),
-  lambda: () => new MathSymbol('λ', '\\lambda'),
-  mu: () => new MathSymbol('μ', '\\mu'),
-  pi: () => new MathSymbol('π', '\\pi'),
-  sigma: () => new MathSymbol('σ', '\\sigma'),
-  phi: () => new MathSymbol('φ', '\\phi'),
-  omega: () => new MathSymbol('ω', '\\omega'),
+  alpha: () => new MathSymbol("α", "\\alpha"),
+  beta: () => new MathSymbol("β", "\\beta"),
+  gamma: () => new MathSymbol("γ", "\\gamma"),
+  delta: () => new MathSymbol("δ", "\\delta"),
+  epsilon: () => new MathSymbol("ε", "\\epsilon"),
+  theta: () => new MathSymbol("θ", "\\theta"),
+  lambda: () => new MathSymbol("λ", "\\lambda"),
+  mu: () => new MathSymbol("μ", "\\mu"),
+  pi: () => new MathSymbol("π", "\\pi"),
+  sigma: () => new MathSymbol("σ", "\\sigma"),
+  phi: () => new MathSymbol("φ", "\\phi"),
+  omega: () => new MathSymbol("ω", "\\omega"),
 
   // Other symbols
-  infty: () => new MathSymbol('∞', '\\infty'),
-  partial: () => new MathSymbol('∂', '\\partial'),
-  nabla: () => new MathSymbol('∇', '\\nabla'),
-  forall: () => new MathSymbol('∀', '\\forall'),
-  exists: () => new MathSymbol('∃', '\\exists'),
-  emptyset: () => new MathSymbol('∅', '\\emptyset'),
+  infty: () => new MathSymbol("∞", "\\infty"),
+  partial: () => new MathSymbol("∂", "\\partial"),
+  nabla: () => new MathSymbol("∇", "\\nabla"),
+  forall: () => new MathSymbol("∀", "\\forall"),
+  exists: () => new MathSymbol("∃", "\\exists"),
+  emptyset: () => new MathSymbol("∅", "\\emptyset"),
 
   // Punctuation
-  comma: () => new Punctuation(','),
-  semicolon: () => new Punctuation(';'),
-  colon: () => new Punctuation(':'),
+  comma: () => new Punctuation(","),
+  semicolon: () => new Punctuation(";"),
+  colon: () => new Punctuation(":"),
 };
 
 /**
  * Create a symbol from a character.
  */
 export function createSymbolFromChar(char: string): MathSymbol {
-  if (char >= '0' && char <= '9') {
+  if (char >= "0" && char <= "9") {
     return Symbols.digit(char);
   }
-  if ((char >= 'a' && char <= 'z') || (char >= 'A' && char <= 'Z')) {
+  if ((char >= "a" && char <= "z") || (char >= "A" && char <= "Z")) {
     return Symbols.variable(char);
   }
 
   switch (char) {
-    case '+':
+    case "+":
       return Symbols.plus();
-    case '-':
+    case "-":
       return Symbols.minus();
-    case '*':
+    case "*":
       return Symbols.cdot();
-    case '/':
+    case "/":
       return Symbols.div();
-    case '=':
+    case "=":
       return Symbols.equals();
-    case '<':
+    case "<":
       return Symbols.lt();
-    case '>':
+    case ">":
       return Symbols.gt();
-    case ',':
+    case ",":
       return Symbols.comma();
-    case ';':
+    case ";":
       return Symbols.semicolon();
-    case ':':
+    case ":":
       return Symbols.colon();
     default:
       return new MathSymbol(char);

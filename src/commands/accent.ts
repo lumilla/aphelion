@@ -4,9 +4,9 @@
  * Implements accent commands like \vec, \bar, \hat, \tilde, etc.
  */
 
-import { NodeBase } from '../core/node';
-import { InnerBlock } from '../core/blocks';
-import { L, R } from '../core/types';
+import { NodeBase } from "../core/node";
+import { InnerBlock } from "../core/blocks";
+import { L, R } from "../core/types";
 
 /**
  * An accent node that places an accent mark over content.
@@ -32,19 +32,19 @@ export class Accent extends NodeBase {
   }
 
   protected createDomElement(): HTMLElement {
-    const el = document.createElement('span');
-    el.className = 'aphelion-accent aphelion-non-leaf';
-    el.setAttribute('data-mq-node-id', String(this.id));
+    const el = document.createElement("span");
+    el.className = "aphelion-accent aphelion-non-leaf";
+    el.setAttribute("data-mq-node-id", String(this.id));
 
-    const wrapper = document.createElement('span');
-    wrapper.className = 'aphelion-accent-wrapper';
+    const wrapper = document.createElement("span");
+    wrapper.className = "aphelion-accent-wrapper";
 
-    const accentMark = document.createElement('span');
-    accentMark.className = 'aphelion-accent-mark';
+    const accentMark = document.createElement("span");
+    accentMark.className = "aphelion-accent-mark";
     accentMark.textContent = this.getDisplayAccent();
 
-    const contentEl = document.createElement('span');
-    contentEl.className = 'aphelion-accent-content';
+    const contentEl = document.createElement("span");
+    contentEl.className = "aphelion-accent-content";
 
     wrapper.appendChild(accentMark);
     wrapper.appendChild(contentEl);
@@ -59,19 +59,19 @@ export class Accent extends NodeBase {
   private getDisplayAccent(): string {
     // Map combining characters to display versions for visibility
     const displayMap: Record<string, string> = {
-      '\u20d7': '→', // vec arrow
-      '\u0304': '―', // overline/bar
-      '\u0302': '^', // hat
-      '\u0303': '~', // tilde
-      '\u0307': '·', // dot
-      '\u0308': '¨', // ddot
-      '\u20db': '⋯', // dddot
-      '\u0301': '´', // acute
-      '\u0300': '`', // grave
-      '\u0306': '˘', // breve
-      '\u030c': 'ˇ', // check
-      '\u030a': '°', // ring
-      '\u0332': '_', // underline
+      "\u20d7": "→", // vec arrow
+      "\u0304": "―", // overline/bar
+      "\u0302": "^", // hat
+      "\u0303": "~", // tilde
+      "\u0307": "·", // dot
+      "\u0308": "¨", // ddot
+      "\u20db": "⋯", // dddot
+      "\u0301": "´", // acute
+      "\u0300": "`", // grave
+      "\u0306": "˘", // breve
+      "\u030c": "ˇ", // check
+      "\u030a": "°", // ring
+      "\u0332": "_", // underline
     };
     return displayMap[this.accent] || this.accent;
   }
@@ -86,33 +86,35 @@ export class Accent extends NodeBase {
 
   override mathspeak(): string {
     const accentNames: Record<string, string> = {
-      '\u20d7': 'vector',
-      '\u0304': 'bar',
-      '\u0302': 'hat',
-      '\u0303': 'tilde',
-      '\u0307': 'dot',
-      '\u0308': 'double dot',
-      '\u20db': 'triple dot',
-      '\u0301': 'acute',
-      '\u0300': 'grave',
-      '\u0306': 'breve',
-      '\u030c': 'check',
-      '\u030a': 'ring',
-      '\u0332': 'underline',
+      "\u20d7": "vector",
+      "\u0304": "bar",
+      "\u0302": "hat",
+      "\u0303": "tilde",
+      "\u0307": "dot",
+      "\u0308": "double dot",
+      "\u20db": "triple dot",
+      "\u0301": "acute",
+      "\u0300": "grave",
+      "\u0306": "breve",
+      "\u030c": "check",
+      "\u030a": "ring",
+      "\u0332": "underline",
     };
-    const name = accentNames[this.accent] || 'accent';
+    const name = accentNames[this.accent] || "accent";
     return `${this.content.mathspeak()} ${name}`;
   }
 
   updateDom(): void {
     const el = this.domElement;
     const contentEl = el.querySelector(
-      '.aphelion-accent-content'
-    ) as HTMLElement;
+      ".aphelion-accent-content",
+    ) as HTMLElement | null;
 
-    contentEl.innerHTML = '';
-    this.content.updateDom();
-    contentEl.appendChild(this.content.domElement);
+    if (contentEl) {
+      contentEl.innerHTML = "";
+      this.content.updateDom();
+      contentEl.appendChild(this.content.domElement);
+    }
   }
 }
 
@@ -143,36 +145,36 @@ export class TextMode extends NodeBase {
 
     // Determine style class based on command
     const styleMap: Record<string, string> = {
-      '\\text': 'aphelion-text',
-      '\\textrm': 'aphelion-text',
-      '\\textit': 'aphelion-text-italic',
-      '\\textbf': 'aphelion-text-bold',
-      '\\textsf': 'aphelion-text-sans',
-      '\\texttt': 'aphelion-text-mono',
-      '\\mathrm': 'aphelion-mathrm',
-      '\\mathit': 'aphelion-mathit',
-      '\\mathbf': 'aphelion-mathbf',
-      '\\mathsf': 'aphelion-mathsf',
-      '\\mathtt': 'aphelion-mathtt',
-      '\\mathcal': 'aphelion-mathcal',
-      '\\mathfrak': 'aphelion-mathfrak',
-      '\\mathbb': 'aphelion-mathbb',
-      '\\mathscr': 'aphelion-mathscr',
+      "\\text": "aphelion-text",
+      "\\textrm": "aphelion-text",
+      "\\textit": "aphelion-text-italic",
+      "\\textbf": "aphelion-text-bold",
+      "\\textsf": "aphelion-text-sans",
+      "\\texttt": "aphelion-text-mono",
+      "\\mathrm": "aphelion-mathrm",
+      "\\mathit": "aphelion-mathit",
+      "\\mathbf": "aphelion-mathbf",
+      "\\mathsf": "aphelion-mathsf",
+      "\\mathtt": "aphelion-mathtt",
+      "\\mathcal": "aphelion-mathcal",
+      "\\mathfrak": "aphelion-mathfrak",
+      "\\mathbb": "aphelion-mathbb",
+      "\\mathscr": "aphelion-mathscr",
     };
-    this.styleClass = styleMap[latexCmd] || 'aphelion-text';
+    this.styleClass = styleMap[latexCmd] || "aphelion-text";
 
     // These text modes should auto-exit after one character
-    const autoExitModes = ['\\mathbb', '\\mathcal', '\\mathfrak', '\\mathscr'];
+    const autoExitModes = ["\\mathbb", "\\mathcal", "\\mathfrak", "\\mathscr"];
     this.autoExitAfterOne = autoExitModes.includes(latexCmd);
   }
 
   protected createDomElement(): HTMLElement {
-    const el = document.createElement('span');
+    const el = document.createElement("span");
     el.className = `aphelion-textmode ${this.styleClass} aphelion-non-leaf`;
-    el.setAttribute('data-mq-node-id', String(this.id));
+    el.setAttribute("data-mq-node-id", String(this.id));
 
-    const contentEl = document.createElement('span');
-    contentEl.className = 'aphelion-textmode-content';
+    const contentEl = document.createElement("span");
+    contentEl.className = "aphelion-textmode-content";
     el.appendChild(contentEl);
 
     return el;
@@ -193,11 +195,13 @@ export class TextMode extends NodeBase {
   updateDom(): void {
     const el = this.domElement;
     const contentEl = el.querySelector(
-      '.aphelion-textmode-content'
-    ) as HTMLElement;
+      ".aphelion-textmode-content",
+    ) as HTMLElement | null;
 
-    contentEl.innerHTML = '';
-    this.content.updateDom();
-    contentEl.appendChild(this.content.domElement);
+    if (contentEl) {
+      contentEl.innerHTML = "";
+      this.content.updateDom();
+      contentEl.appendChild(this.content.domElement);
+    }
   }
 }

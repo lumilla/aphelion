@@ -4,37 +4,37 @@
  * Delimiters that auto-scale to their content.
  */
 
-import { NodeBase } from '../core/node';
-import { InnerBlock } from '../core/blocks';
-import { L, R } from '../core/types';
+import { NodeBase } from "../core/node";
+import { InnerBlock } from "../core/blocks";
+import { L, R } from "../core/types";
 
 /** Bracket types */
-export type BracketType = '(' | ')' | '[' | ']' | '{' | '}' | '|' | '⟨' | '⟩';
+export type BracketType = "(" | ")" | "[" | "]" | "{" | "}" | "|" | "⟨" | "⟩";
 
 /** Matching pairs */
 const BRACKET_PAIRS: Record<string, string> = {
-  '(': ')',
-  ')': '(',
-  '[': ']',
-  ']': '[',
-  '{': '}',
-  '}': '{',
-  '|': '|',
-  '⟨': '⟩',
-  '⟩': '⟨',
+  "(": ")",
+  ")": "(",
+  "[": "]",
+  "]": "[",
+  "{": "}",
+  "}": "{",
+  "|": "|",
+  "⟨": "⟩",
+  "⟩": "⟨",
 };
 
 /** LaTeX commands for brackets */
 const BRACKET_LATEX: Record<string, string> = {
-  '(': '(',
-  ')': ')',
-  '[': '[',
-  ']': ']',
-  '{': '\\{',
-  '}': '\\}',
-  '|': '|',
-  '⟨': '\\langle',
-  '⟩': '\\rangle',
+  "(": "(",
+  ")": ")",
+  "[": "[",
+  "]": "]",
+  "{": "\\{",
+  "}": "\\}",
+  "|": "|",
+  "⟨": "\\langle",
+  "⟩": "\\rangle",
 };
 
 /**
@@ -61,19 +61,19 @@ export class Bracket extends NodeBase {
   }
 
   protected createDomElement(): HTMLElement {
-    const el = document.createElement('span');
-    el.className = 'aphelion-bracket aphelion-non-leaf';
-    el.setAttribute('data-mq-node-id', String(this.id));
+    const el = document.createElement("span");
+    el.className = "aphelion-bracket aphelion-non-leaf";
+    el.setAttribute("data-mq-node-id", String(this.id));
 
-    const openEl = document.createElement('span');
-    openEl.className = 'aphelion-bracket-open aphelion-scaled';
+    const openEl = document.createElement("span");
+    openEl.className = "aphelion-bracket-open aphelion-scaled";
     openEl.textContent = this.open;
 
-    const contentEl = document.createElement('span');
-    contentEl.className = 'aphelion-bracket-content';
+    const contentEl = document.createElement("span");
+    contentEl.className = "aphelion-bracket-content";
 
-    const closeEl = document.createElement('span');
-    closeEl.className = 'aphelion-bracket-close aphelion-scaled';
+    const closeEl = document.createElement("span");
+    closeEl.className = "aphelion-bracket-close aphelion-scaled";
     closeEl.textContent = this.close;
 
     el.appendChild(openEl);
@@ -95,26 +95,26 @@ export class Bracket extends NodeBase {
   }
 
   override mathspeak(): string {
-    const openName = this.getBracketName(this.open, 'open');
-    const closeName = this.getBracketName(this.close, 'close');
+    const openName = this.getBracketName(this.open, "open");
+    const closeName = this.getBracketName(this.close, "close");
     return `${openName}, ${this.content.mathspeak()}, ${closeName}`;
   }
 
-  private getBracketName(bracket: string, side: 'open' | 'close'): string {
+  private getBracketName(bracket: string, side: "open" | "close"): string {
     switch (bracket) {
-      case '(':
-      case ')':
+      case "(":
+      case ")":
         return `${side} parenthesis`;
-      case '[':
-      case ']':
+      case "[":
+      case "]":
         return `${side} bracket`;
-      case '{':
-      case '}':
+      case "{":
+      case "}":
         return `${side} brace`;
-      case '|':
-        return `${side === 'open' ? 'begin' : 'end'} absolute value`;
-      case '⟨':
-      case '⟩':
+      case "|":
+        return `${side === "open" ? "begin" : "end"} absolute value`;
+      case "⟨":
+      case "⟩":
         return `${side} angle bracket`;
       default:
         return side;
@@ -124,10 +124,10 @@ export class Bracket extends NodeBase {
   updateDom(): void {
     const el = this.domElement;
     const contentEl = el.querySelector(
-      '.aphelion-bracket-content'
+      ".aphelion-bracket-content",
     ) as HTMLElement;
 
-    contentEl.innerHTML = '';
+    contentEl.innerHTML = "";
     this.content.updateDom();
     contentEl.appendChild(this.content.domElement);
 
@@ -140,13 +140,13 @@ export class Bracket extends NodeBase {
    */
   private scaleBrackets(): void {
     const contentEl = this.domElement.querySelector(
-      '.aphelion-bracket-content'
+      ".aphelion-bracket-content",
     ) as HTMLElement;
     const openEl = this.domElement.querySelector(
-      '.aphelion-bracket-open'
+      ".aphelion-bracket-open",
     ) as HTMLElement;
     const closeEl = this.domElement.querySelector(
-      '.aphelion-bracket-close'
+      ".aphelion-bracket-close",
     ) as HTMLElement;
 
     if (contentEl && openEl && closeEl) {
@@ -167,7 +167,7 @@ export class Bracket extends NodeBase {
  */
 export class Parentheses extends Bracket {
   constructor() {
-    super('(', ')');
+    super("(", ")");
   }
 }
 
@@ -176,7 +176,7 @@ export class Parentheses extends Bracket {
  */
 export class SquareBrackets extends Bracket {
   constructor() {
-    super('[', ']');
+    super("[", "]");
   }
 }
 
@@ -185,7 +185,7 @@ export class SquareBrackets extends Bracket {
  */
 export class CurlyBraces extends Bracket {
   constructor() {
-    super('{', '}');
+    super("{", "}");
   }
 }
 
@@ -194,7 +194,7 @@ export class CurlyBraces extends Bracket {
  */
 export class AbsoluteValue extends Bracket {
   constructor() {
-    super('|', '|');
+    super("|", "|");
   }
 
   override latex(): string {
@@ -211,6 +211,6 @@ export class AbsoluteValue extends Bracket {
  */
 export class AngleBrackets extends Bracket {
   constructor() {
-    super('⟨', '⟩');
+    super("⟨", "⟩");
   }
 }

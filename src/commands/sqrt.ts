@@ -4,9 +4,9 @@
  * Square root and nth root nodes.
  */
 
-import { NodeBase } from '../core/node';
-import { InnerBlock } from '../core/blocks';
-import { L, R } from '../core/types';
+import { NodeBase } from "../core/node";
+import { InnerBlock } from "../core/blocks";
+import { L, R } from "../core/types";
 
 /**
  * A square root.
@@ -24,20 +24,20 @@ export class SquareRoot extends NodeBase {
   }
 
   protected createDomElement(): HTMLElement {
-    const el = document.createElement('span');
-    el.className = 'aphelion-sqrt aphelion-non-leaf';
-    el.setAttribute('data-mq-node-id', String(this.id));
+    const el = document.createElement("span");
+    el.className = "aphelion-sqrt aphelion-non-leaf";
+    el.setAttribute("data-mq-node-id", String(this.id));
 
     // Create the radical symbol structure
-    const prefix = document.createElement('span');
-    prefix.className = 'aphelion-sqrt-prefix aphelion-scaled';
-    prefix.textContent = '√';
+    const prefix = document.createElement("span");
+    prefix.className = "aphelion-sqrt-prefix aphelion-scaled";
+    prefix.textContent = "√";
 
-    const stem = document.createElement('span');
-    stem.className = 'aphelion-sqrt-stem aphelion-scaled';
+    const stem = document.createElement("span");
+    stem.className = "aphelion-sqrt-stem aphelion-scaled";
 
-    const content = document.createElement('span');
-    content.className = 'aphelion-sqrt-content';
+    const content = document.createElement("span");
+    content.className = "aphelion-sqrt-content";
 
     el.appendChild(prefix);
     el.appendChild(stem);
@@ -60,9 +60,9 @@ export class SquareRoot extends NodeBase {
 
   updateDom(): void {
     const el = this.domElement;
-    const contentEl = el.querySelector('.aphelion-sqrt-content') as HTMLElement;
+    const contentEl = el.querySelector(".aphelion-sqrt-content") as HTMLElement;
 
-    contentEl.innerHTML = '';
+    contentEl.innerHTML = "";
     this.radicand.updateDom();
     contentEl.appendChild(this.radicand.domElement);
 
@@ -75,13 +75,13 @@ export class SquareRoot extends NodeBase {
    */
   private scaleRadical(): void {
     const contentEl = this.domElement.querySelector(
-      '.aphelion-sqrt-content'
+      ".aphelion-sqrt-content",
     ) as HTMLElement;
     const stemEl = this.domElement.querySelector(
-      '.aphelion-sqrt-stem'
+      ".aphelion-sqrt-stem",
     ) as HTMLElement;
     const prefixEl = this.domElement.querySelector(
-      '.aphelion-sqrt-prefix'
+      ".aphelion-sqrt-prefix",
     ) as HTMLElement;
 
     if (contentEl && stemEl && prefixEl) {
@@ -123,25 +123,25 @@ export class NthRoot extends NodeBase {
   }
 
   protected createDomElement(): HTMLElement {
-    const el = document.createElement('span');
-    el.className = 'aphelion-nthroot aphelion-non-leaf';
-    el.setAttribute('data-mq-node-id', String(this.id));
+    const el = document.createElement("span");
+    el.className = "aphelion-nthroot aphelion-non-leaf";
+    el.setAttribute("data-mq-node-id", String(this.id));
 
-    const indexEl = document.createElement('sup');
-    indexEl.className = 'aphelion-nthroot-index';
+    const indexEl = document.createElement("sup");
+    indexEl.className = "aphelion-nthroot-index";
 
-    const sqrtEl = document.createElement('span');
-    sqrtEl.className = 'aphelion-sqrt';
+    const sqrtEl = document.createElement("span");
+    sqrtEl.className = "aphelion-sqrt";
 
-    const prefix = document.createElement('span');
-    prefix.className = 'aphelion-sqrt-prefix aphelion-scaled';
-    prefix.textContent = '√';
+    const prefix = document.createElement("span");
+    prefix.className = "aphelion-sqrt-prefix aphelion-scaled";
+    prefix.textContent = "√";
 
-    const stem = document.createElement('span');
-    stem.className = 'aphelion-sqrt-stem aphelion-scaled';
+    const stem = document.createElement("span");
+    stem.className = "aphelion-sqrt-stem aphelion-scaled";
 
-    const content = document.createElement('span');
-    content.className = 'aphelion-sqrt-content';
+    const content = document.createElement("span");
+    content.className = "aphelion-sqrt-content";
 
     sqrtEl.appendChild(prefix);
     sqrtEl.appendChild(stem);
@@ -173,14 +173,14 @@ export class NthRoot extends NodeBase {
 
   updateDom(): void {
     const el = this.domElement;
-    const indexEl = el.querySelector('.aphelion-nthroot-index') as HTMLElement;
-    const contentEl = el.querySelector('.aphelion-sqrt-content') as HTMLElement;
+    const indexEl = el.querySelector(".aphelion-nthroot-index") as HTMLElement;
+    const contentEl = el.querySelector(".aphelion-sqrt-content") as HTMLElement;
 
-    indexEl.innerHTML = '';
+    indexEl.innerHTML = "";
     this.index.updateDom();
     indexEl.appendChild(this.index.domElement);
 
-    contentEl.innerHTML = '';
+    contentEl.innerHTML = "";
     this.radicand.updateDom();
     contentEl.appendChild(this.radicand.domElement);
   }
