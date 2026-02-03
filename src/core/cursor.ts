@@ -126,8 +126,14 @@ export class Cursor {
 
   /**
    * Insert the cursor DOM element at the current position.
+   * Does nothing if the editor is not editable (static math).
    */
   show(): this {
+    // For static (non-editable) math, never show the cursor
+    if (this.options.editable === false) {
+      return this;
+    }
+
     // Temporarily stop blink animation during repositioning
     const wasBlinking = this.domElement.classList.contains("aphelion-blink");
     this.domElement.classList.remove("aphelion-blink");
@@ -333,54 +339,67 @@ export class Cursor {
   moveUp(): boolean {
     this.clearSelection();
 
-    const parent = this.parent;
-    const grandparent = parent.parent;
+    // Try to find a navigable structure by traversing up the tree
+    let currentBlock: MathBlock | undefined = this.parent;
 
-    if (!grandparent) {
-      // At root, can't move up
-      return false;
-    }
+    while (currentBlock) {
+      const blockParent: NodeBase | undefined = currentBlock.parent;
 
-    // Check if we're in a matrix cell - move to cell above
-    if (this.isMatrixCell(parent)) {
-      const cell = parent as MatrixCellLike;
-      const cellAbove = cell.matrix.getCell(cell.row - 1, cell.col);
-      if (cellAbove) {
-        this.parent = cellAbove;
-        this[L] = cellAbove.ends[R];
+      if (!blockParent) {
+        // Reached root, can't move up
+        break;
+      }
+
+      // Check if we're in a matrix cell - move to cell above
+      if (this.isMatrixCell(currentBlock)) {
+        const cell = currentBlock as MatrixCellLike;
+        const cellAbove = cell.matrix.getCell(cell.row - 1, cell.col);
+        if (cellAbove) {
+          this.parent = cellAbove;
+          this[L] = cellAbove.ends[R];
+          this[R] = undefined;
+          this.show();
+          return true;
+        }
+        // At top row, continue searching up
+      }
+
+      // Check if we're in a denominator/lower block of a two-block structure
+      // (fraction, supsub where ends[L] !== ends[R])
+      if (
+        blockParent.ends[L] instanceof MathBlock &&
+        blockParent.ends[R] instanceof MathBlock &&
+        blockParent.ends[L] !== blockParent.ends[R] &&
+        blockParent.ends[R] === currentBlock
+      ) {
+        // We're in the right/lower block, move to left/upper
+        const upperBlock = blockParent.ends[L] as MathBlock;
+        this.parent = upperBlock;
+        this[L] = upperBlock.ends[R];
         this[R] = undefined;
         this.show();
         return true;
       }
-      // At top row, move out of matrix
-      return this.moveOut(L);
+
+      // Check if we're in a subscript - try to find superscript (sibling block)
+      if (currentBlock[L] instanceof MathBlock) {
+        const upperBlock = currentBlock[L] as MathBlock;
+        this.parent = upperBlock;
+        this[L] = upperBlock.ends[R];
+        this[R] = undefined;
+        this.show();
+        return true;
+      }
+
+      // Move up to the parent's container block and continue searching
+      if (blockParent.parent instanceof MathBlock) {
+        currentBlock = blockParent.parent;
+      } else {
+        break;
+      }
     }
 
-    // Check if we're in a denominator - move to numerator
-    if (
-      grandparent.ends[R] === parent &&
-      grandparent.ends[L] instanceof MathBlock
-    ) {
-      // We're in the right/lower block, move to left/upper
-      const upperBlock = grandparent.ends[L] as MathBlock;
-      this.parent = upperBlock;
-      this[L] = upperBlock.ends[R];
-      this[R] = undefined;
-      this.show();
-      return true;
-    }
-
-    // Check if we're in a subscript - try to find superscript
-    if (parent[L] instanceof MathBlock) {
-      const upperBlock = parent[L] as MathBlock;
-      this.parent = upperBlock;
-      this[L] = upperBlock.ends[R];
-      this[R] = undefined;
-      this.show();
-      return true;
-    }
-
-    // Otherwise move out of current block to parent level
+    // No navigable structure found, try to move out
     return this.moveOut(L);
   }
 
@@ -390,54 +409,67 @@ export class Cursor {
   moveDown(): boolean {
     this.clearSelection();
 
-    const parent = this.parent;
-    const grandparent = parent.parent;
+    // Try to find a navigable structure by traversing up the tree
+    let currentBlock: MathBlock | undefined = this.parent;
 
-    if (!grandparent) {
-      // At root, can't move down
-      return false;
-    }
+    while (currentBlock) {
+      const blockParent: NodeBase | undefined = currentBlock.parent;
 
-    // Check if we're in a matrix cell - move to cell below
-    if (this.isMatrixCell(parent)) {
-      const cell = parent as MatrixCellLike;
-      const cellBelow = cell.matrix.getCell(cell.row + 1, cell.col);
-      if (cellBelow) {
-        this.parent = cellBelow;
+      if (!blockParent) {
+        // Reached root, can't move down
+        break;
+      }
+
+      // Check if we're in a matrix cell - move to cell below
+      if (this.isMatrixCell(currentBlock)) {
+        const cell = currentBlock as MatrixCellLike;
+        const cellBelow = cell.matrix.getCell(cell.row + 1, cell.col);
+        if (cellBelow) {
+          this.parent = cellBelow;
+          this[L] = undefined;
+          this[R] = cellBelow.ends[L];
+          this.show();
+          return true;
+        }
+        // At bottom row, continue searching up
+      }
+
+      // Check if we're in a numerator/upper block of a two-block structure
+      // (fraction, supsub where ends[L] !== ends[R])
+      if (
+        blockParent.ends[L] instanceof MathBlock &&
+        blockParent.ends[R] instanceof MathBlock &&
+        blockParent.ends[L] !== blockParent.ends[R] &&
+        blockParent.ends[L] === currentBlock
+      ) {
+        // We're in the left/upper block, move to right/lower
+        const lowerBlock = blockParent.ends[R] as MathBlock;
+        this.parent = lowerBlock;
         this[L] = undefined;
-        this[R] = cellBelow.ends[L];
+        this[R] = lowerBlock.ends[L];
         this.show();
         return true;
       }
-      // At bottom row, move out of matrix
-      return this.moveOut(R);
+
+      // Check if we're in a superscript - try to find subscript (sibling block)
+      if (currentBlock[R] instanceof MathBlock) {
+        const lowerBlock = currentBlock[R] as MathBlock;
+        this.parent = lowerBlock;
+        this[L] = undefined;
+        this[R] = lowerBlock.ends[L];
+        this.show();
+        return true;
+      }
+
+      // Move up to the parent's container block and continue searching
+      if (blockParent.parent instanceof MathBlock) {
+        currentBlock = blockParent.parent;
+      } else {
+        break;
+      }
     }
 
-    // Check if we're in a numerator - move to denominator
-    if (
-      grandparent.ends[L] === parent &&
-      grandparent.ends[R] instanceof MathBlock
-    ) {
-      // We're in the left/upper block, move to right/lower
-      const lowerBlock = grandparent.ends[R] as MathBlock;
-      this.parent = lowerBlock;
-      this[L] = undefined;
-      this[R] = lowerBlock.ends[L];
-      this.show();
-      return true;
-    }
-
-    // Check if we're in a superscript - try to find subscript
-    if (parent[R] instanceof MathBlock) {
-      const lowerBlock = parent[R] as MathBlock;
-      this.parent = lowerBlock;
-      this[L] = undefined;
-      this[R] = lowerBlock.ends[L];
-      this.show();
-      return true;
-    }
-
-    // Otherwise move out of current block to parent level
+    // No navigable structure found, try to move out
     return this.moveOut(R);
   }
 

@@ -57,8 +57,6 @@ export interface EditorConfig {
   handlers?: EditorHandlers;
   /** Substitution for text input */
   substituteTextarea?: () => HTMLTextAreaElement;
-  /** Whether to enable typing in static math */
-  mouseEvents?: boolean;
   /** Character width for spacing calculations */
   charWidth?: number;
 

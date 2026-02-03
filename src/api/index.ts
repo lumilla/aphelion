@@ -84,10 +84,10 @@ export interface AphelionConfig {
 
 /**
  * Configuration for StaticMath.
+ * StaticMath is fully static with no interactivity - no cursor, no events.
  */
 export interface AphelionStaticConfig {
-  /** Whether to disable events */
-  mouseEvents?: boolean;
+  // StaticMath has no configuration options - it's fully static
 }
 
 // Backwards compatibility aliases
@@ -416,14 +416,9 @@ export function getInterface(version: number = 3): AphelionAPI {
     // Create controller (non-editable)
     const controller = new Controller({
       editable: false,
-      mouseEvents: config?.mouseEvents ?? true,
     });
     controller.init(element);
     controller.setLatex(initialLatex);
-
-    // Remove textarea for static math
-    const textarea = element.querySelector(".aphelion-textarea");
-    textarea?.remove();
 
     // Create instance
     const instance = createStaticMathInstance(controller, element);

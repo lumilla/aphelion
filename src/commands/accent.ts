@@ -55,25 +55,62 @@ export class Accent extends NodeBase {
 
   /**
    * Get a display-friendly accent character.
+   * Maps combining Unicode characters to visible display versions.
    */
   private getDisplayAccent(): string {
     // Map combining characters to display versions for visibility
+    // Use actual Unicode characters (not escape sequences) to ensure matching
     const displayMap: Record<string, string> = {
-      "\u20d7": "→", // vec arrow
-      "\u0304": "―", // overline/bar
-      "\u0302": "^", // hat
-      "\u0303": "~", // tilde
-      "\u0307": "·", // dot
-      "\u0308": "¨", // ddot
-      "\u20db": "⋯", // dddot
-      "\u0301": "´", // acute
-      "\u0300": "`", // grave
-      "\u0306": "˘", // breve
-      "\u030c": "ˇ", // check
-      "\u030a": "°", // ring
-      "\u0332": "_", // underline
+      // Vector arrow (U+20D7)
+      "⃗": "→",
+      // Bar/overline (U+0304)
+      "̄": "―",
+      // Hat/circumflex (U+0302)
+      "̂": "^",
+      // Tilde (U+0303)
+      "̃": "~",
+      // Dot (U+0307)
+      "̇": "·",
+      // Double dot (U+0308)
+      "̈": "¨",
+      // Triple dot (U+20DB)
+      "⃛": "⋯",
+      // Acute (U+0301)
+      "́": "´",
+      // Grave (U+0300)
+      "̀": "`",
+      // Breve (U+0306)
+      "̆": "˘",
+      // Check/caron (U+030C)
+      "̌": "ˇ",
+      // Ring (U+030A)
+      "̊": "°",
+      // Underline (U+0332)
+      "̲": "_",
+      // Overbrace (U+23DE)
+      "⏞": "⏞",
+      // Underbrace (U+23DF)
+      "⏟": "⏟",
     };
-    return displayMap[this.accent] || this.accent;
+
+    // Try to find in map, otherwise use a safe fallback
+    const display = displayMap[this.accent];
+    if (display) {
+      return display;
+    }
+
+    // If the accent is a printable character, use it
+    // Otherwise use a generic accent mark
+    if (
+      this.accent &&
+      this.accent.length === 1 &&
+      this.accent.charCodeAt(0) > 0x20
+    ) {
+      return this.accent;
+    }
+
+    // Safe fallback - generic overline
+    return "―";
   }
 
   latex(): string {

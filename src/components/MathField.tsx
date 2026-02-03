@@ -269,10 +269,6 @@ export function StaticMath({
     controller.init(containerRef.current);
     controller.setLatex(children);
 
-    // Remove textarea and make non-editable
-    const textarea = containerRef.current.querySelector(".aphelion-textarea");
-    textarea?.remove();
-
     return () => {
       controller.detach();
     };

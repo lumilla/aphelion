@@ -888,3 +888,41 @@
 .aphelion-size-xxlarge {
   font-size: 2em;
 }
+
+/* ============================================
+   Static Math Mode
+   ============================================ */
+
+/* Static math container */
+.mq-static-math {
+  /* Allow text selection for copy */
+  user-select: text;
+  -webkit-user-select: text;
+  cursor: default;
+}
+
+/* Hide cursor in static mode */
+.mq-static-math .aphelion-cursor {
+  display: none !important;
+}
+
+/* Hide empty placeholder boxes in static mode */
+.mq-static-math .aphelion-empty {
+  display: none;
+}
+
+/* Hide empty inner blocks in static mode */
+.mq-static-math .aphelion-inner-block:empty {
+  display: none;
+}
+
+/* Remove interactive styling from static mode */
+.mq-static-math .aphelion-container:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+/* Make static math slightly transparent on empty blocks that somehow show */
+.mq-static-math .aphelion-placeholder {
+  display: none;
+}

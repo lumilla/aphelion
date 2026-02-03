@@ -104,6 +104,15 @@ export class Controller {
     this.root.updateDom();
     container.appendChild(this.root.domElement);
 
+    // For static (non-editable) math, skip all interactive setup
+    // but keep copy functionality
+    if (this.options.editable === false) {
+      container.classList.add("mq-static-math");
+      // Enable copy for static math via container selection
+      container.addEventListener("copy", this.handleStaticCopy);
+      return this;
+    }
+
     // Create and attach hidden textarea for input
     this.createTextarea();
 
@@ -184,6 +193,8 @@ export class Controller {
     if (this.container) {
       this.container.removeEventListener("mousedown", this.handleMouseDown);
       this.container.removeEventListener("mousemove", this.handleMouseMove);
+      // Remove static copy listener if present
+      this.container.removeEventListener("copy", this.handleStaticCopy);
     }
     document.removeEventListener("mouseup", this.handleMouseUp);
     if (this.textarea) {
@@ -539,6 +550,17 @@ export class Controller {
   private handleCopy = (e: ClipboardEvent): void => {
     e.preventDefault();
     const latex = this.getSelectionLatex();
+    if (latex) {
+      e.clipboardData?.setData("text/plain", latex);
+    }
+  };
+
+  /**
+   * Handle copy for static math - copies full LaTeX content.
+   */
+  private handleStaticCopy = (e: ClipboardEvent): void => {
+    e.preventDefault();
+    const latex = this.latex();
     if (latex) {
       e.clipboardData?.setData("text/plain", latex);
     }
@@ -1185,21 +1207,22 @@ export class Controller {
       case "\\underline":
       case "\\overbrace":
       case "\\underbrace": {
+        // Use actual Unicode characters (not escape sequences) to ensure matching
         const accentMap: Record<string, string> = {
-          "\\vec": "\u20d7",
-          "\\bar": "\u0304",
-          "\\overline": "\u0304",
-          "\\underline": "\u0332",
-          "\\hat": "\u0302",
-          "\\dot": "\u0307",
-          "\\ddot": "\u0308",
-          "\\tilde": "\u0303",
-          "\\widehat": "\u0302",
-          "\\widetilde": "\u0303",
-          "\\overbrace": "\u23de",
-          "\\underbrace": "\u23df",
+          "\\vec": "⃗", // U+20D7
+          "\\bar": "̄", // U+0304
+          "\\overline": "̄", // U+0304
+          "\\underline": "̲", // U+0332
+          "\\hat": "̂", // U+0302
+          "\\dot": "̇", // U+0307
+          "\\ddot": "̈", // U+0308
+          "\\tilde": "̃", // U+0303
+          "\\widehat": "̂", // U+0302
+          "\\widetilde": "̃", // U+0303
+          "\\overbrace": "⏞", // U+23DE
+          "\\underbrace": "⏟", // U+23DF
         };
-        const accentChar = accentMap[name] || "\u0304";
+        const accentChar = accentMap[name] || "̄"; // fallback to bar
         const accentNode = new Accent(accentChar, name);
         this.cursor.insert(accentNode);
         if (args[0]) this.fillBlockWithNodes(accentNode.content, args[0]);

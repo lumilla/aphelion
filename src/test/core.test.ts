@@ -1948,7 +1948,13 @@ import {
   AbsoluteValue,
   AngleBrackets,
 } from "../commands/brackets";
-import { TextSpan, OperatorName, Operators, isOperatorName, createOperator } from "../commands/text";
+import {
+  TextSpan,
+  OperatorName,
+  Operators,
+  isOperatorName,
+  createOperator,
+} from "../commands/text";
 import { Accent, TextMode } from "../commands/accent";
 
 describe("Bracket classes", () => {
