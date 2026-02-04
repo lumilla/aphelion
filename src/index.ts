@@ -27,10 +27,6 @@ export * from "./parser/latex";
 // Controller export
 export * from "./controller/controller";
 
-// React components
-export * from "./components/hooks";
-export * from "./components/MathField";
-
 // Public API
 export { Aphelion, getInterface } from "./api";
 export type {

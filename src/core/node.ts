@@ -312,11 +312,11 @@ export abstract class NodeBase {
    * Get the LaTeX of all children joined together.
    */
   childrenLatex(): string {
-    let latex = "";
+    const parts: string[] = [];
     for (const child of this.children()) {
-      latex += child.latex();
+      parts.push(child.latex());
     }
-    return latex;
+    return parts.join("");
   }
 
   /**

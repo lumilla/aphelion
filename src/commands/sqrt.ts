@@ -15,6 +15,9 @@ export class SquareRoot extends NodeBase {
   /** The content under the radical */
   readonly radicand: InnerBlock;
 
+  /** Cached DOM element reference */
+  private _contentEl?: HTMLElement;
+
   constructor() {
     super();
     this.radicand = new InnerBlock();
@@ -60,11 +63,19 @@ export class SquareRoot extends NodeBase {
 
   updateDom(): void {
     const el = this.domElement;
-    const contentEl = el.querySelector(".aphelion-sqrt-content") as HTMLElement;
 
-    contentEl.innerHTML = "";
-    this.radicand.updateDom();
-    contentEl.appendChild(this.radicand.domElement);
+    // Cache element reference on first access
+    if (!this._contentEl) {
+      this._contentEl = el.querySelector(".aphelion-sqrt-content") as
+        | HTMLElement
+        | undefined;
+    }
+
+    if (this._contentEl) {
+      this._contentEl.innerHTML = "";
+      this.radicand.updateDom();
+      this._contentEl.appendChild(this.radicand.domElement);
+    }
 
     // Scale the radical symbol based on content height
     this.scaleRadical();
@@ -106,6 +117,10 @@ export class NthRoot extends NodeBase {
 
   /** The content under the radical */
   readonly radicand: InnerBlock;
+
+  /** Cached DOM element references */
+  private _indexEl?: HTMLElement;
+  private _contentEl?: HTMLElement;
 
   constructor() {
     super();
@@ -173,15 +188,27 @@ export class NthRoot extends NodeBase {
 
   updateDom(): void {
     const el = this.domElement;
-    const indexEl = el.querySelector(".aphelion-nthroot-index") as HTMLElement;
-    const contentEl = el.querySelector(".aphelion-sqrt-content") as HTMLElement;
 
-    indexEl.innerHTML = "";
-    this.index.updateDom();
-    indexEl.appendChild(this.index.domElement);
+    // Cache element references on first access
+    if (!this._indexEl) {
+      this._indexEl = el.querySelector(".aphelion-nthroot-index") as
+        | HTMLElement
+        | undefined;
+      this._contentEl = el.querySelector(".aphelion-sqrt-content") as
+        | HTMLElement
+        | undefined;
+    }
 
-    contentEl.innerHTML = "";
-    this.radicand.updateDom();
-    contentEl.appendChild(this.radicand.domElement);
+    if (this._indexEl) {
+      this._indexEl.innerHTML = "";
+      this.index.updateDom();
+      this._indexEl.appendChild(this.index.domElement);
+    }
+
+    if (this._contentEl) {
+      this._contentEl.innerHTML = "";
+      this.radicand.updateDom();
+      this._contentEl.appendChild(this.radicand.domElement);
+    }
   }
 }

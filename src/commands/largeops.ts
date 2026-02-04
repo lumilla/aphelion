@@ -135,17 +135,25 @@ export abstract class LargeOperator extends NodeBase {
     const el = this.domElement;
 
     if (this.lower) {
-      const lowerEl = el.querySelector(".aphelion-lower-limit") as HTMLElement;
-      lowerEl.innerHTML = "";
-      this.lower.updateDom();
-      lowerEl.appendChild(this.lower.domElement);
+      const lowerEl = el.querySelector(
+        ".aphelion-lower-limit",
+      ) as HTMLElement | null;
+      if (lowerEl) {
+        lowerEl.innerHTML = "";
+        this.lower.updateDom();
+        lowerEl.appendChild(this.lower.domElement);
+      }
     }
 
     if (this.upper) {
-      const upperEl = el.querySelector(".aphelion-upper-limit") as HTMLElement;
-      upperEl.innerHTML = "";
-      this.upper.updateDom();
-      upperEl.appendChild(this.upper.domElement);
+      const upperEl = el.querySelector(
+        ".aphelion-upper-limit",
+      ) as HTMLElement | null;
+      if (upperEl) {
+        upperEl.innerHTML = "";
+        this.upper.updateDom();
+        upperEl.appendChild(this.upper.domElement);
+      }
     }
   }
 }
@@ -277,6 +285,9 @@ export class Limit extends NodeBase {
   /** The LaTeX command */
   readonly command = "\\lim";
 
+  /** Cached DOM element reference */
+  private _subEl?: HTMLElement;
+
   constructor(withSubscript: boolean = false) {
     super();
 
@@ -338,11 +349,16 @@ export class Limit extends NodeBase {
   updateDom(): void {
     if (this.subscript) {
       const el = this.domElement;
-      const subEl = el.querySelector(".aphelion-lower-limit") as HTMLElement;
-      if (subEl) {
-        subEl.innerHTML = "";
+
+      // Cache element reference on first access
+      if (!this._subEl) {
+        this._subEl = el.querySelector(".aphelion-lower-limit") as HTMLElement;
+      }
+
+      if (this._subEl) {
+        this._subEl.innerHTML = "";
         this.subscript.updateDom();
-        subEl.appendChild(this.subscript.domElement);
+        this._subEl.appendChild(this.subscript.domElement);
       }
     }
   }

@@ -8,10 +8,6 @@ Install via npm:
 npm install @lumilla/aphelion
 ```
 
-## Peer Dependencies
-
-For React use we recommend React 19+. React is optional; Aphelion works fine with vanilla JavaScript.
-
 ## Importing Styles
 
 Don't forget to import the stylesheet:
@@ -28,4 +24,4 @@ Or in your CSS/SCSS:
 
 ## Next Steps
 
-Try [Quick Start](/guide/quick-start), [Vanilla JavaScript](/guide/vanilla-js) or [React](/guide/react) for examples.
+Try [Quick Start](/guide/quick-start) or [Vanilla JavaScript](/guide/vanilla-js) for examples.

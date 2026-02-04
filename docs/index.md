@@ -31,10 +31,10 @@ assert(mathField.latex().includes("frac"), "Should contain fraction");
 
 ## Features
 
-LaTeX input/output, interactive editing, React support, accessibility and a modest bundle size
+LaTeX input/output, interactive editing, accessibility and a modest bundle size
 
 ## Documentation
 
-See [Getting Started](/guide/getting-started), [Vanilla JavaScript](/guide/vanilla-js), [React](/guide/react) and the [API Reference](/api/).
+See [Getting Started](/guide/getting-started), [Vanilla JavaScript](/guide/vanilla-js) and the [API Reference](/api/).
 
 Note: LLMs were used in the making of this documentation. This is not ideal, so PRs and issues are very much welcome.

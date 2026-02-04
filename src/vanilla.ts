@@ -1,7 +1,7 @@
 /**
  * Aphelion - Vanilla JavaScript Entry Point
  *
- * This entry point excludes React components for use in non-React environments.
+ * Exports core Aphelion API for vanilla JavaScript applications.
  */
 
 // Core exports

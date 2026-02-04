@@ -25,7 +25,7 @@ export default defineConfig({
         },
         {
           find: "@lumilla/aphelion",
-          replacement: resolve(__dirname, "../../dist/vanilla.es.js"),
+          replacement: resolve(__dirname, "../../dist/aphelion.es.js"),
         },
       ],
     },

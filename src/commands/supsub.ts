@@ -15,6 +15,9 @@ export class Subscript extends NodeBase {
   /** The subscript content */
   readonly sub: InnerBlock;
 
+  /** Cached DOM element reference */
+  private _subEl?: HTMLElement;
+
   constructor() {
     super();
     this.sub = new InnerBlock();
@@ -62,11 +65,19 @@ export class Subscript extends NodeBase {
 
   updateDom(): void {
     const el = this.domElement;
-    const subEl = el.querySelector(".aphelion-sub") as HTMLElement;
 
-    subEl.innerHTML = "";
-    this.sub.updateDom();
-    subEl.appendChild(this.sub.domElement);
+    // Cache element reference on first access
+    if (!this._subEl) {
+      this._subEl = el.querySelector(".aphelion-sub") as
+        | HTMLElement
+        | undefined;
+    }
+
+    if (this._subEl) {
+      this._subEl.innerHTML = "";
+      this.sub.updateDom();
+      this._subEl.appendChild(this.sub.domElement);
+    }
   }
 }
 
@@ -76,6 +87,9 @@ export class Subscript extends NodeBase {
 export class Superscript extends NodeBase {
   /** The superscript content */
   readonly sup: InnerBlock;
+
+  /** Cached DOM element reference */
+  private _supEl?: HTMLElement;
 
   constructor() {
     super();
@@ -117,11 +131,19 @@ export class Superscript extends NodeBase {
 
   updateDom(): void {
     const el = this.domElement;
-    const supEl = el.querySelector(".aphelion-sup") as HTMLElement;
 
-    supEl.innerHTML = "";
-    this.sup.updateDom();
-    supEl.appendChild(this.sup.domElement);
+    // Cache element reference on first access
+    if (!this._supEl) {
+      this._supEl = el.querySelector(".aphelion-sup") as
+        | HTMLElement
+        | undefined;
+    }
+
+    if (this._supEl) {
+      this._supEl.innerHTML = "";
+      this.sup.updateDom();
+      this._supEl.appendChild(this.sup.domElement);
+    }
   }
 }
 
@@ -134,6 +156,10 @@ export class SupSub extends NodeBase {
 
   /** The superscript content */
   readonly sup: InnerBlock;
+
+  /** Cached DOM element references */
+  private _subEl?: HTMLElement;
+  private _supEl?: HTMLElement;
 
   constructor() {
     super();
@@ -190,15 +216,27 @@ export class SupSub extends NodeBase {
 
   updateDom(): void {
     const el = this.domElement;
-    const supEl = el.querySelector(".aphelion-sup") as HTMLElement;
-    const subEl = el.querySelector(".aphelion-sub") as HTMLElement;
 
-    supEl.innerHTML = "";
-    this.sup.updateDom();
-    supEl.appendChild(this.sup.domElement);
+    // Cache element references on first access
+    if (!this._supEl) {
+      this._supEl = el.querySelector(".aphelion-sup") as
+        | HTMLElement
+        | undefined;
+      this._subEl = el.querySelector(".aphelion-sub") as
+        | HTMLElement
+        | undefined;
+    }
 
-    subEl.innerHTML = "";
-    this.sub.updateDom();
-    subEl.appendChild(this.sub.domElement);
+    if (this._supEl) {
+      this._supEl.innerHTML = "";
+      this.sup.updateDom();
+      this._supEl.appendChild(this.sup.domElement);
+    }
+
+    if (this._subEl) {
+      this._subEl.innerHTML = "";
+      this.sub.updateDom();
+      this._subEl.appendChild(this.sub.domElement);
+    }
   }
 }

@@ -1,7 +1,7 @@
 /**
  * Regression tests for bug fixes
  *
- * These tests ensure that fixed bugs don't regress.
+ * These tests ensure that fixed bugs don't regress. (no shit Sherlock)
  */
 
 import { describe, it, expect, beforeEach } from "vitest";

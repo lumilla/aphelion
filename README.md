@@ -8,7 +8,7 @@ A beautiful, interactive math editor for the modern web.
 [![TypeScript](https://shields.io/badge/TypeScript-3178C6?logo=TypeScript&logoColor=FFF&style=flat-square)](https://www.typescriptlang.org/)
 [![License: LGPL v3](https://img.shields.io/github/license/lumilla/aphelion)](LICENSE)
 
-Aphelion is a LaTeX-based math input library that renders editable mathematical expressions in the browser. It supports both vanilla JavaScript and React applications.
+Aphelion is a LaTeX-based math input library that renders editable mathematical expressions in the browser.
 
 > **Note:** Aphelion is an inspired modern reimplementation of the fantastic [mathquill/mathquill](https://github.com/mathquill/mathquill) (MPL licensed). It is not a derivative work. The codebase has been written from scratch.
 
@@ -39,44 +39,6 @@ const mathField = AP.MathField(document.getElementById("math-field"), {
 
 // Set content programmatically
 mathField.latex("\\frac{a}{b}");
-```
-
-### React Components
-
-Aphelion provides React components for both controlled and uncontrolled usage patterns.
-
-#### Uncontrolled MathField
-
-```tsx
-import { useRef } from "react";
-import { MathField, MathFieldRef } from "@lumilla/aphelion";
-import "@lumilla/aphelion/styles.css";
-
-function App() {
-  const ref = useRef<MathFieldRef>(null);
-
-  return (
-    <MathField
-      ref={ref}
-      defaultValue="x^2 + y^2 = z^2"
-      onChange={(latex) => console.log(latex)}
-    />
-  );
-}
-```
-
-#### Controlled MathField
-
-```tsx
-import { useState } from "react";
-import { ControlledMathField } from "@lumilla/aphelion";
-import "@lumilla/aphelion/styles.css";
-
-function App() {
-  const [latex, setLatex] = useState("x^2");
-
-  return <ControlledMathField value={latex} onChange={setLatex} />;
-}
 ```
 
 #### Static Math Display

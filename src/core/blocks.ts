@@ -28,11 +28,11 @@ export class MathBlock extends NodeBase {
   }
 
   text(): string {
-    let result = "";
+    const parts: string[] = [];
     for (const child of this.children()) {
-      result += child.text();
+      parts.push(child.text());
     }
-    return result;
+    return parts.join("");
   }
 
   updateDom(): void {

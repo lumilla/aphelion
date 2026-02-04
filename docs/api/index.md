@@ -4,7 +4,7 @@ This section provides API documentation for Aphelion.
 
 ## Overview
 
-Vanilla JavaScript APIs: [Aphelion Interface](./aphelion), [MathField](./mathfield) and [StaticMath](./staticmath). React components are in [React Components](./react-components). Configuration options are documented in [Configuration](./configuration).
+Vanilla JavaScript APIs: [Aphelion Interface](./aphelion), [MathField](./mathfield) and [StaticMath](./staticmath). Configuration options are documented in [Configuration](./configuration).
 
 ## Quick Reference
 
@@ -22,7 +22,8 @@ assert(typeof mathField.latex === "function", "Should have methods");
 
 ### MathField Methods
 
-```javascript doctest\nimport { Aphelion } from '@lumilla/aphelion';
+```javascript doctest
+import { Aphelion } from "@lumilla/aphelion";
 const AP = Aphelion.getInterface(3);
 const mathField = AP.MathField(document.createElement("div"));
 
@@ -30,26 +31,6 @@ const mathField = AP.MathField(document.createElement("div"));
 mathField.latex("x^2");
 assert(typeof mathField.text() === "string", "Should have methods");
 assert(typeof mathField.html() === "string", "Should have html method");
-```
-
-### React Usage
-
-```tsx
-// Uncontrolled
-<MathField
-  ref={ref}
-  defaultValue="x^2"
-  onChange={handleChange}
-/>
-
-// Controlled
-<ControlledMathField
-  value={latex}
-  onChange={setLatex}
-/>
-
-// Static
-<StaticMath>{"\\frac{1}{2}"}</StaticMath>
 ```
 
 ## TypeScript Types

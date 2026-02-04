@@ -50,6 +50,9 @@ export class Bracket extends NodeBase {
   /** The content between the brackets */
   readonly content: InnerBlock;
 
+  /** Cached DOM element reference */
+  private _contentEl?: HTMLElement;
+
   constructor(open: BracketType, close?: BracketType) {
     super();
     this.open = open;
@@ -123,13 +126,19 @@ export class Bracket extends NodeBase {
 
   updateDom(): void {
     const el = this.domElement;
-    const contentEl = el.querySelector(
-      ".aphelion-bracket-content",
-    ) as HTMLElement;
 
-    contentEl.innerHTML = "";
-    this.content.updateDom();
-    contentEl.appendChild(this.content.domElement);
+    // Cache element reference on first access
+    if (!this._contentEl) {
+      this._contentEl = el.querySelector(".aphelion-bracket-content") as
+        | HTMLElement
+        | undefined;
+    }
+
+    if (this._contentEl) {
+      this._contentEl.innerHTML = "";
+      this.content.updateDom();
+      this._contentEl.appendChild(this.content.domElement);
+    }
 
     // Scale brackets to match content height
     this.scaleBrackets();

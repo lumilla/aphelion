@@ -93,8 +93,6 @@ function clearEditor() {
 
 # Interactive Demo
 
-Try it here - no setup required
-
 ## Math Editor
 
 <div class="demo-section">

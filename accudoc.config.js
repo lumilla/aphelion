@@ -3,8 +3,6 @@
 import { defineConfig, createDomEnvironment } from "accudoc";
 import { resolve, dirname } from "path";
 import { fileURLToPath } from "url";
-import React from "react";
-import ReactDOM from "react-dom";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -57,20 +55,6 @@ export default defineConfig({
         }
       };
     }
-
-    // Create a require function for CommonJS modules
-    const modules = {
-      react: React,
-      "react-dom": ReactDOM,
-    };
-
-    // ESlint is conviced this doesn't work, but idk, it seems to do its job
-    env.require = (id) => {
-      if (modules[id]) {
-        return modules[id];
-      }
-      throw new Error(`Cannot find module '${id}'`);
-    };
 
     return env;
   },

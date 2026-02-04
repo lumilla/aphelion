@@ -17,7 +17,9 @@ export class Fraction extends NodeBase {
 
   /** The denominator block */
   readonly denominator: InnerBlock;
-
+  /** Cached DOM element references */
+  private _numEl?: HTMLElement;
+  private _denomEl?: HTMLElement;
   constructor() {
     super();
     this.numerator = new InnerBlock();
@@ -81,18 +83,30 @@ export class Fraction extends NodeBase {
 
   updateDom(): void {
     const el = this.domElement;
-    const numEl = el.querySelector(".aphelion-numerator") as HTMLElement;
-    const denomEl = el.querySelector(".aphelion-denominator") as HTMLElement;
+
+    // Cache element references on first access
+    if (!this._numEl) {
+      this._numEl = el.querySelector(".aphelion-numerator") as
+        | HTMLElement
+        | undefined;
+      this._denomEl = el.querySelector(".aphelion-denominator") as
+        | HTMLElement
+        | undefined;
+    }
 
     // Clear and update numerator
-    numEl.innerHTML = "";
-    this.numerator.updateDom();
-    numEl.appendChild(this.numerator.domElement);
+    if (this._numEl) {
+      this._numEl.innerHTML = "";
+      this.numerator.updateDom();
+      this._numEl.appendChild(this.numerator.domElement);
+    }
 
     // Clear and update denominator
-    denomEl.innerHTML = "";
-    this.denominator.updateDom();
-    denomEl.appendChild(this.denominator.domElement);
+    if (this._denomEl) {
+      this._denomEl.innerHTML = "";
+      this.denominator.updateDom();
+      this._denomEl.appendChild(this.denominator.domElement);
+    }
   }
 
   /**

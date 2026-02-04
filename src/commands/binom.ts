@@ -17,7 +17,9 @@ export class BinomialCoefficient extends NodeBase {
 
   /** The denominator (bottom) */
   readonly denominator: InnerBlock;
-
+  /** Cached DOM element references */
+  private _numEl?: HTMLElement;
+  private _denomEl?: HTMLElement;
   constructor() {
     super();
     this.numerator = new InnerBlock();
@@ -81,21 +83,27 @@ export class BinomialCoefficient extends NodeBase {
 
   updateDom(): void {
     const el = this.domElement;
-    const numEl = el.querySelector(".aphelion-binom-numerator") as HTMLElement;
-    const denEl = el.querySelector(
-      ".aphelion-binom-denominator",
-    ) as HTMLElement;
 
-    if (numEl) {
-      numEl.innerHTML = "";
-      this.numerator.updateDom();
-      numEl.appendChild(this.numerator.domElement);
+    // Cache element references on first access
+    if (!this._numEl) {
+      this._numEl = el.querySelector(
+        ".aphelion-binom-numerator",
+      ) as HTMLElement;
+      this._denomEl = el.querySelector(
+        ".aphelion-binom-denominator",
+      ) as HTMLElement;
     }
 
-    if (denEl) {
-      denEl.innerHTML = "";
+    if (this._numEl) {
+      this._numEl.innerHTML = "";
+      this.numerator.updateDom();
+      this._numEl.appendChild(this.numerator.domElement);
+    }
+
+    if (this._denomEl) {
+      this._denomEl.innerHTML = "";
       this.denominator.updateDom();
-      denEl.appendChild(this.denominator.domElement);
+      this._denomEl.appendChild(this.denominator.domElement);
     }
 
     // Scale parentheses to match content height

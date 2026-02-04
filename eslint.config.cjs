@@ -22,10 +22,7 @@ module.exports = [
     },
     plugins: {
       "@typescript-eslint": require("@typescript-eslint/eslint-plugin"),
-      react: require("eslint-plugin-react"),
-      "react-hooks": require("eslint-plugin-react-hooks"),
     },
-    settings: { react: { version: "detect" } },
     rules: {
       // TypeScript
       "no-unused-vars": "off",
@@ -33,9 +30,6 @@ module.exports = [
         "warn",
         { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
       ],
-      // React hooks
-      "react-hooks/rules-of-hooks": "error",
-      "react-hooks/exhaustive-deps": "warn",
       // Allow TS to handle undefined checks
       "no-undef": "off",
     },

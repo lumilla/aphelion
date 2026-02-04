@@ -172,6 +172,9 @@ export class TextMode extends NodeBase {
   /** Whether to auto-exit after one character (for mathbb, mathcal, etc.) */
   readonly autoExitAfterOne: boolean;
 
+  /** Cached DOM element reference */
+  private _contentEl?: HTMLElement;
+
   constructor(latexCmd: string) {
     super();
     this.latexCmd = latexCmd;
@@ -231,14 +234,18 @@ export class TextMode extends NodeBase {
 
   updateDom(): void {
     const el = this.domElement;
-    const contentEl = el.querySelector(
-      ".aphelion-textmode-content",
-    ) as HTMLElement | null;
 
-    if (contentEl) {
-      contentEl.innerHTML = "";
+    // Cache element reference on first access
+    if (!this._contentEl) {
+      this._contentEl = el.querySelector(".aphelion-textmode-content") as
+        | HTMLElement
+        | undefined;
+    }
+
+    if (this._contentEl) {
+      this._contentEl.innerHTML = "";
       this.content.updateDom();
-      contentEl.appendChild(this.content.domElement);
+      this._contentEl.appendChild(this.content.domElement);
     }
   }
 }

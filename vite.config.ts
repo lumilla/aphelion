@@ -1,5 +1,4 @@
 import { defineConfig, rolldownVersion } from "vite";
-import react from "@vitejs/plugin-react";
 import dts from "vite-plugin-dts";
 import { resolve } from "path";
 
@@ -9,7 +8,6 @@ export default defineConfig(({ mode }) => {
 
   return {
     plugins: [
-      react(),
       isLib &&
         dts({
           insertTypesEntry: true,
@@ -47,24 +45,15 @@ export default defineConfig(({ mode }) => {
           ...(rolldownVersion
             ? {
                 rolldownOptions: {
-                  external: ["react", "react-dom"],
                   output: {
-                    globals: {
-                      react: "React",
-                      "react-dom": "ReactDOM",
-                    },
+                    globals: {},
                   },
                 },
               }
             : {
                 rollupOptions: {
-                  external: ["react", "react-dom"],
                   output: {
-                    globals: {
-                      react: "React",
-                      "react-dom": "ReactDOM",
-                    },
-                    jsx: "transform",
+                    globals: {},
                   },
                 },
               }),
