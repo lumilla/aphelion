@@ -1,6 +1,6 @@
 {
   "name": "@lumilla/aphelion",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Aphelion - A beautiful, interactive math editor for the web",
   "type": "module",
   "main": "dist/aphelion.js",
