@@ -15,7 +15,11 @@
       "import": "./dist/aphelion.es.js",
       "require": "./dist/aphelion.js"
     },
-    "./styles.css": "./dist/styles.css"
+    "./styles.css": "./dist/styles.css",
+    "./vanilla": {
+      "types": "./dist/vanilla.d.ts",
+      "import": "./dist/vanilla.es.js"
+    }
   },
   "files": [
     "dist"
