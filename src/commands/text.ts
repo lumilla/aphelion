@@ -51,8 +51,20 @@ export class TextSpan extends NodeBase {
   }
 }
 
+/** Standard TeX operator names that exist as built-in LaTeX commands */
+const STANDARD_TEX_OPS = new Set([
+  "sin", "cos", "tan", "cot", "sec", "csc",
+  "arcsin", "arccos", "arctan",
+  "sinh", "cosh", "tanh",
+  "log", "ln", "lg", "exp",
+  "lim", "limsup", "liminf",
+  "max", "min", "sup", "inf",
+  "det", "dim", "ker", "hom",
+  "arg", "deg", "gcd", "lcm", "mod",
+]);
+
 /**
- * An operator name like sin, cos, log, etc.
+ * An operator name like sin, cos, log, solve, etc.
  */
 export class OperatorName extends NodeBase {
   /** The operator name */
@@ -64,7 +76,13 @@ export class OperatorName extends NodeBase {
   constructor(name: string, latexCmd?: string) {
     super();
     this.name = name;
-    this.latexCmd = latexCmd ?? `\\${name}`;
+    if (latexCmd) {
+      this.latexCmd = latexCmd;
+    } else if (STANDARD_TEX_OPS.has(name.toLowerCase())) {
+      this.latexCmd = `\\${name.toLowerCase()}`;
+    } else {
+      this.latexCmd = `\\mathrm{${name}}`;
+    }
   }
 
   protected createDomElement(): HTMLElement {
@@ -96,6 +114,21 @@ export class OperatorName extends NodeBase {
  * Factory for common operator names.
  */
 export const Operators = {
+  // CAS operations
+  solve: () => new OperatorName("solve"),
+  expand: () => new OperatorName("expand"),
+  factor: () => new OperatorName("factor"),
+  simplify: () => new OperatorName("simplify"),
+  diff: () => new OperatorName("diff"),
+  limit: () => new OperatorName("limit"),
+  piecewise: () => new OperatorName("piecewise"),
+  zeros: () => new OperatorName("zeros"),
+  fMax: () => new OperatorName("fMax"),
+  fMin: () => new OperatorName("fMin"),
+  cSolve: () => new OperatorName("cSolve"),
+  nSolve: () => new OperatorName("nSolve"),
+  approx: () => new OperatorName("approx"),
+
   // Trigonometric
   sin: () => new OperatorName("sin"),
   cos: () => new OperatorName("cos"),

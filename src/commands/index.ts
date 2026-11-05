@@ -10,4 +10,7 @@ export * from "./brackets";
 export * from "./text";
 export * from "./largeops";
 export * from "./binom";
+export * from "./matrix";
+export * from "./accent";
+export * from "./templates";
 export * from "./latexCommandInput";

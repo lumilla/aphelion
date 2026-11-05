@@ -26,6 +26,7 @@ export class Accent extends NodeBase {
     this.accent = accent;
     this.latexCmd = latexCmd;
     this.content = new InnerBlock();
+    this.content.showPlaceholder = false;
     this.content.parent = this;
     this.ends[L] = this.content;
     this.ends[R] = this.content;
@@ -59,7 +60,8 @@ export class Accent extends NodeBase {
    */
   private getDisplayAccent(): string {
     // Map combining characters to display versions for visibility
-    // Use actual Unicode characters (not escape sequences) to ensure matching
+    // Use actual Unicode characters (not escape sequences) to ensure matchingw 
+    // (FIXME: HEY UH, WHAT? WHY NOT USE ESCAPE SEQUENCES???)
     const displayMap: Record<string, string> = {
       // Vector arrow (U+20D7)
       "⃗": "→",
@@ -93,6 +95,7 @@ export class Accent extends NodeBase {
       "⏟": "⏟",
     };
 
+    // FIXME: "Safe fallback" is a bit of a misnomer... If it's broken it should be broken, not silently replaced with a generic overline.
     // Try to find in map, otherwise use a safe fallback
     const display = displayMap[this.accent];
     if (display) {
@@ -110,6 +113,7 @@ export class Accent extends NodeBase {
     }
 
     // Safe fallback - generic overline
+    // AHEM, SEE FIXME ABOVE. This is a "safe fallback" that silently replaces the accent with a generic overline. This is not ideal, but it prevents rendering issues for unknown accents.
     return "―";
   }
 
@@ -179,6 +183,7 @@ export class TextMode extends NodeBase {
     super();
     this.latexCmd = latexCmd;
     this.content = new InnerBlock();
+    this.content.showPlaceholder = false;
     this.content.parent = this;
     this.ends[L] = this.content;
     this.ends[R] = this.content;

@@ -7,6 +7,8 @@
 import { NodeBase } from "../core/node";
 import { InnerBlock } from "../core/blocks";
 import { L, R } from "../core/types";
+// I don't remember why I named it RADICAL_SVG. Is it radicalizing? Is it radical? Is it a radical symbol?
+const RADICAL_SVG = `<svg class="aphelion-sqrt-svg" viewBox="0 0 16 100" preserveAspectRatio="none" aria-hidden="true"><path d="M 1 54 L 3.5 50 L 6.8 96 L 15.2 1 L 16 1" stroke="currentColor" stroke-width="1.6" fill="none" vector-effect="non-scaling-stroke" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 
 /**
  * A square root.
@@ -31,19 +33,15 @@ export class SquareRoot extends NodeBase {
     el.className = "aphelion-sqrt aphelion-non-leaf";
     el.setAttribute("data-mq-node-id", String(this.id));
 
-    // Create the radical symbol structure
+    // Create the radical symbol structure with gapless SVG
     const prefix = document.createElement("span");
-    prefix.className = "aphelion-sqrt-prefix aphelion-scaled";
-    prefix.textContent = "√";
-
-    const stem = document.createElement("span");
-    stem.className = "aphelion-sqrt-stem aphelion-scaled";
+    prefix.className = "aphelion-sqrt-prefix";
+    prefix.innerHTML = RADICAL_SVG;
 
     const content = document.createElement("span");
     content.className = "aphelion-sqrt-content";
 
     el.appendChild(prefix);
-    el.appendChild(stem);
     el.appendChild(content);
 
     return el;
@@ -77,30 +75,14 @@ export class SquareRoot extends NodeBase {
       this._contentEl.appendChild(this.radicand.domElement);
     }
 
-    // Scale the radical symbol based on content height
-    this.scaleRadical();
+    // CSS flex stretch handles radical scaling automatically
   }
 
   /**
-   * Scale the radical symbol to match the content height.
+   * Reflow radical symbol when needed.
    */
   private scaleRadical(): void {
-    const contentEl = this.domElement.querySelector(
-      ".aphelion-sqrt-content",
-    ) as HTMLElement;
-    const stemEl = this.domElement.querySelector(
-      ".aphelion-sqrt-stem",
-    ) as HTMLElement;
-    const prefixEl = this.domElement.querySelector(
-      ".aphelion-sqrt-prefix",
-    ) as HTMLElement;
-
-    if (contentEl && stemEl && prefixEl) {
-      const height = contentEl.offsetHeight || 20;
-      const scale = Math.max(1, height / 20);
-      prefixEl.style.transform = `scaleY(${scale})`;
-      stemEl.style.height = `${height}px`;
-    }
+    // Pure CSS flexbox align-items: stretch guarantees gapless scaling natively
   }
 
   override reflow(): void {
@@ -112,6 +94,8 @@ export class SquareRoot extends NodeBase {
  * An nth root with an index.
  */
 export class NthRoot extends NodeBase {
+  override horizontalBlockNav = true;
+
   /** The root index (e.g., 3 for cube root) */
   readonly index: InnerBlock;
 
@@ -142,27 +126,27 @@ export class NthRoot extends NodeBase {
     el.className = "aphelion-nthroot aphelion-non-leaf";
     el.setAttribute("data-mq-node-id", String(this.id));
 
+    const indexWrapper = document.createElement("span");
+    indexWrapper.className = "aphelion-nthroot-index-wrapper";
+
     const indexEl = document.createElement("sup");
     indexEl.className = "aphelion-nthroot-index";
+    indexWrapper.appendChild(indexEl);
 
     const sqrtEl = document.createElement("span");
     sqrtEl.className = "aphelion-sqrt";
 
     const prefix = document.createElement("span");
-    prefix.className = "aphelion-sqrt-prefix aphelion-scaled";
-    prefix.textContent = "√";
-
-    const stem = document.createElement("span");
-    stem.className = "aphelion-sqrt-stem aphelion-scaled";
+    prefix.className = "aphelion-sqrt-prefix";
+    prefix.innerHTML = RADICAL_SVG;
 
     const content = document.createElement("span");
     content.className = "aphelion-sqrt-content";
 
     sqrtEl.appendChild(prefix);
-    sqrtEl.appendChild(stem);
     sqrtEl.appendChild(content);
 
-    el.appendChild(indexEl);
+    el.appendChild(indexWrapper);
     el.appendChild(sqrtEl);
 
     return el;
@@ -175,9 +159,9 @@ export class NthRoot extends NodeBase {
   }
 
   text(): string {
-    const idx = this.index.text();
+    const idx = this.index.text() || "2";
     const rad = this.radicand.text();
-    return `root(${idx})(${rad})`;
+    return `root(${idx}, ${rad})`;
   }
 
   override mathspeak(): string {
@@ -210,5 +194,15 @@ export class NthRoot extends NodeBase {
       this.radicand.updateDom();
       this._contentEl.appendChild(this.radicand.domElement);
     }
+
+    this.scaleRadical();
+  }
+
+  private scaleRadical(): void {
+    // Pure CSS flexbox align-items: stretch guarantees gapless scaling natively
+  }
+
+  override reflow(): void {
+    this.scaleRadical();
   }
 }

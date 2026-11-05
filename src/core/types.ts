@@ -74,19 +74,19 @@ export interface EditorHandlers {
   /** Called when the content changes */
   edit?: (mathField: unknown) => void;
   /** Called when cursor moves */
-  moveOutOf?: (direction: DirectionType, mathField: unknown) => void;
+  moveOutOf?: (direction: DirectionType, mathField?: unknown) => void;
   /** Called when selection changes */
-  selectOutOf?: (direction: DirectionType, mathField: unknown) => void;
+  selectOutOf?: (direction: DirectionType, mathField?: unknown) => void;
   /** Called when deleting at boundary */
-  deleteOutOf?: (direction: DirectionType, mathField: unknown) => void;
+  deleteOutOf?: (direction: DirectionType, mathField?: unknown) => void;
   /** Called when entering the field */
   enter?: (mathField: unknown) => void;
   /** Called when using up arrow at boundary */
-  upOutOf?: (mathField: unknown) => void;
+  upOutOf?: (mathField?: unknown) => void;
   /** Called when using down arrow at boundary */
-  downOutOf?: (mathField: unknown) => void;
+  downOutOf?: (mathField?: unknown) => void;
   /** Called on reflow/resize */
-  reflow?: (mathField: unknown) => void;
+  reflow?: (mathField?: unknown) => void;
 }
 
 /** LaTeX command definition for registration */

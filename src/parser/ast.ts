@@ -85,7 +85,8 @@ export interface LatexMatrix extends LatexNodeBase {
     | "bmatrix"
     | "Bmatrix"
     | "vmatrix"
-    | "Vmatrix";
+    | "Vmatrix"
+    | "cases";
   cells: LatexNode[][][]; // rows[cols[cell content]]
 }
 
@@ -176,7 +177,8 @@ export function matrix(
     | "bmatrix"
     | "Bmatrix"
     | "vmatrix"
-    | "Vmatrix",
+    | "Vmatrix"
+    | "cases",
   cells: LatexNode[][][],
 ): LatexMatrix {
   return { type: "matrix", matrixType, cells };

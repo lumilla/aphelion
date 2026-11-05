@@ -16,7 +16,7 @@ export class MatrixCell extends InnerBlock {
   row: number;
   col: number;
   matrix: Matrix;
-  protected override cssClass = "aphelion-matrix-cell";
+  protected override cssClass = "aphelion-inner-block aphelion-matrix-cell";
 
   constructor(matrix: Matrix, row: number, col: number) {
     super();
@@ -29,13 +29,14 @@ export class MatrixCell extends InnerBlock {
 /**
  * Matrix type definitions for different bracket styles.
  */
-type MatrixType =
+export type MatrixType =
   | "matrix"
   | "pmatrix"
   | "bmatrix"
   | "Bmatrix"
   | "vmatrix"
-  | "Vmatrix";
+  | "Vmatrix"
+  | "cases";
 
 const MATRIX_BRACKETS: Record<MatrixType, { left: string; right: string }> = {
   matrix: { left: "", right: "" },
@@ -44,12 +45,15 @@ const MATRIX_BRACKETS: Record<MatrixType, { left: string; right: string }> = {
   Bmatrix: { left: "{", right: "}" },
   vmatrix: { left: "|", right: "|" },
   Vmatrix: { left: "‖", right: "‖" },
+  cases: { left: "{", right: "" },
 };
 
 /**
  * A Matrix node supporting various matrix environments.
  */
 export class Matrix extends NodeBase {
+  override horizontalBlockNav = true;
+
   /** The type of matrix (pmatrix, bmatrix, etc.) */
   readonly matrixType: MatrixType;
 
@@ -105,6 +109,7 @@ export class Matrix extends NodeBase {
     const container = document.createElement("span");
     container.className = this.cssClass;
     container.dataset.mqNodeId = String(this.id);
+    container.dataset.type = this.matrixType;
 
     // Left bracket
     if (brackets.left) {
@@ -154,7 +159,9 @@ export class Matrix extends NodeBase {
     let result = `\\begin{${env}}`;
 
     for (let r = 0; r < this.rows; r++) {
-      const rowLatex = this.cells[r].map((cell) => cell.latex()).join(" & ");
+      const rowLatex = this.cells[r]
+        .map((cell) => cell.childrenLatex())
+        .join(" & ");
       result += rowLatex;
       if (r < this.rows - 1) {
         result += " \\\\ ";
@@ -166,6 +173,46 @@ export class Matrix extends NodeBase {
   }
 
   text(): string {
+    if (this.matrixType === "cases") {
+      if (this.cols >= 2) {
+        const args: string[] = [];
+        for (let r = 0; r < this.rows; r++) {
+          const val = this.cells[r][0].text().trim() || "0";
+          const cond = this.cells[r][1]?.text().trim() ?? "";
+          if (
+            !cond ||
+            cond === "true" ||
+            cond === "else" ||
+            cond === "otherwise"
+          ) {
+            if (r === this.rows - 1) {
+              args.push(val);
+            } else {
+              args.push("true", val);
+            }
+          } else {
+            args.push(cond, val);
+          }
+        }
+        return `piecewise(${args.join(", ")})`;
+      } else {
+        const eqs = this.cells
+          .map((row) => row[0].text().trim())
+          .filter(Boolean);
+        const joined = eqs.join(" ");
+        const stripped = joined.replace(/\b[a-zA-Z]{2,}\b/g, "");
+        const foundVars = Array.from(
+          new Set(stripped.match(/\b[a-zA-Z]\b/g) ?? []),
+        ).filter((v) => v !== "e" && v !== "i");
+        const defaultVars = ["x", "y", "z", "t", "u", "v"];
+        const vars =
+          foundVars.length > 0
+            ? foundVars
+            : defaultVars.slice(0, Math.max(1, eqs.length));
+        return `solve([${eqs.join(", ")}], [${vars.join(", ")}])`;
+      }
+    }
+
     let result = "[";
     for (let r = 0; r < this.rows; r++) {
       result += "[";
@@ -194,6 +241,7 @@ export class Matrix extends NodeBase {
     const el = this.domElement;
     el.className = `${this.cssClass} mq-non-leaf`;
     el.setAttribute("data-rows", String(this.rows));
+    el.setAttribute("data-type", this.matrixType);
 
     // Find the grid element
     let grid = el.querySelector(".aphelion-matrix-grid") as HTMLElement;
@@ -316,4 +364,5 @@ export const Matrices = {
   Bmatrix: (rows = 2, cols = 2) => new Matrix("Bmatrix", rows, cols),
   vmatrix: (rows = 2, cols = 2) => new Matrix("vmatrix", rows, cols),
   Vmatrix: (rows = 2, cols = 2) => new Matrix("Vmatrix", rows, cols),
+  cases: (rows = 2, cols = 2) => new Matrix("cases", rows, cols),
 };

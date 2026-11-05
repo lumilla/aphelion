@@ -58,6 +58,7 @@ export class Bracket extends NodeBase {
     this.open = open;
     this.close = (close ?? BRACKET_PAIRS[open] ?? open) as BracketType;
     this.content = new InnerBlock();
+    this.content.showPlaceholder = false;
     this.content.parent = this;
     this.ends[L] = this.content;
     this.ends[R] = this.content;
@@ -159,10 +160,19 @@ export class Bracket extends NodeBase {
     ) as HTMLElement;
 
     if (contentEl && openEl && closeEl) {
-      const height = contentEl.offsetHeight || 20;
-      const scale = Math.max(1, height / 20);
-      openEl.style.transform = `scaleY(${scale})`;
-      closeEl.style.transform = `scaleY(${scale})`;
+      // Determine base font size of the bracket glyph
+      const em = parseFloat(getComputedStyle(openEl).fontSize) || 29;
+      const singleLineThreshold = em * 1.35;
+      const contentHeight = contentEl.offsetHeight;
+
+      if (!contentHeight || contentHeight <= singleLineThreshold) {
+        openEl.style.transform = "";
+        closeEl.style.transform = "";
+      } else {
+        const scale = Math.max(1, contentHeight / (em * 1.15));
+        openEl.style.transform = `scaleY(${scale.toFixed(3)})`;
+        closeEl.style.transform = `scaleY(${scale.toFixed(3)})`;
+      }
     }
   }
 
@@ -208,6 +218,10 @@ export class AbsoluteValue extends Bracket {
 
   override latex(): string {
     return `\\left|${this.content.childrenLatex()}\\right|`;
+  }
+
+  override text(): string {
+    return `abs(${this.content.text()})`;
   }
 
   override mathspeak(): string {

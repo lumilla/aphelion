@@ -28,6 +28,8 @@ export class BinomialCoefficient extends NodeBase {
     this.denominator.parent = this;
     this.ends[L] = this.numerator;
     this.ends[R] = this.denominator;
+    this.numerator[R] = this.denominator;
+    this.denominator[L] = this.numerator;
   }
 
   protected createDomElement(): HTMLElement {
@@ -74,7 +76,7 @@ export class BinomialCoefficient extends NodeBase {
   }
 
   text(): string {
-    return `(${this.numerator.text()} ${this.denominator.text()})`;
+    return `comb(${this.numerator.text()}, ${this.denominator.text()})`;
   }
 
   override mathspeak(): string {

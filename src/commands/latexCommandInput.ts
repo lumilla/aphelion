@@ -9,7 +9,7 @@
 
 import { NodeBase } from "../core/node";
 import { InnerBlock } from "../core/blocks";
-import { L, R, DirectionType } from "../core/types";
+import { L, R } from "../core/types";
 
 /**
  * LaTeX command input node.

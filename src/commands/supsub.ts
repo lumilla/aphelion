@@ -122,7 +122,8 @@ export class Superscript extends NodeBase {
   }
 
   text(): string {
-    return `^${this.sup.text()}`;
+    const supText = this.sup.text();
+    return supText.length > 1 ? `^(${supText})` : `^${supText}`;
   }
 
   override mathspeak(): string {
@@ -207,7 +208,10 @@ export class SupSub extends NodeBase {
   }
 
   text(): string {
-    return `_${this.sub.text()}^${this.sup.text()}`;
+    const subText = this.sub.text();
+    const supText = this.sup.text();
+    const formattedSup = supText.length > 1 ? `^(${supText})` : `^${supText}`;
+    return `_${subText}${formattedSup}`;
   }
 
   override mathspeak(): string {
