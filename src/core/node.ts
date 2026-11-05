@@ -316,7 +316,14 @@ export abstract class NodeBase {
   childrenLatex(): string {
     const parts: string[] = [];
     for (const child of this.children()) {
-      parts.push(child.latex());
+      const l = child.latex();
+      if (parts.length > 0) {
+        const prev = parts[parts.length - 1]!;
+        if (/\\[a-zA-Z]+$/.test(prev) && /^[a-zA-Z]/.test(l)) {
+          parts.push(" ");
+        }
+      }
+      parts.push(l);
     }
     return parts.join("");
   }
@@ -381,11 +388,18 @@ export class NodeFragment {
    * Get the combined LaTeX of all nodes in the fragment.
    */
   latex(): string {
-    let result = "";
+    const parts: string[] = [];
     for (const node of this) {
-      result += node.latex();
+      const l = node.latex();
+      if (parts.length > 0) {
+        const prev = parts[parts.length - 1]!;
+        if (/\\[a-zA-Z]+$/.test(prev) && /^[a-zA-Z]/.test(l)) {
+          parts.push(" ");
+        }
+      }
+      parts.push(l);
     }
-    return result;
+    return parts.join("");
   }
 
   /**
