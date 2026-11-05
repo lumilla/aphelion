@@ -1399,7 +1399,7 @@ describe("Edge Cases and Robustness", () => {
       { input: "\\sum_{i=1}^{n}i", expected: "\\sum_{i=1}^{n}i" },
       { input: "\\int_{a}^{b}f(x)dx", expected: "\\int_{a}^{b}f(x)dx" },
       { input: "\\alpha+\\beta=\\gamma", expected: "\\alpha+\\beta=\\gamma" },
-      { input: "a\\pm b\\mp c", expected: "a\\pmb\\mpc" }, // Spaces get stripped in parsing
+      { input: "a\\pm b\\mp c", expected: "a\\pm b\\mp c" },
       { input: "x_{a}^{b}", expected: "x_a^b" }, // Single char loses braces (both sub and sup)
     ];
 
