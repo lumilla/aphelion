@@ -313,13 +313,13 @@
 
 .aphelion-supsub {
   text-align: left;
-  font-size: 0.72em;
-  vertical-align: -0.4em;
+  font-size: 0.68em;
+  vertical-align: -0.38em;
   display: inline-block;
 }
 
 .aphelion-supsub.aphelion-sup-only {
-  vertical-align: 0.45em;
+  vertical-align: 0.58em;
 }
 
 .aphelion-supsub.aphelion-sup-only > .aphelion-sup {
