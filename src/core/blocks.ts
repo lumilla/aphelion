@@ -6,7 +6,7 @@
  */
 
 import { NodeBase } from "./node";
-import { L, R } from "./types";
+import { L } from "./types";
 
 /**
  * A block that can contain math content.
@@ -32,7 +32,11 @@ export class MathBlock extends NodeBase {
     for (const child of this.children()) {
       parts.push(child.text());
     }
-    return parts.join("");
+    return parts
+      .join("")
+      .replace(/−/g, "-")
+      .replace(/·|×/g, "*")
+      .replace(/÷/g, "/");
   }
 
   updateDom(): void {

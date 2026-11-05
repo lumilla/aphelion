@@ -13,15 +13,32 @@ import { createSymbolFromChar, MathSymbol } from "../commands/symbol";
 import { Fraction } from "../commands/fraction";
 import { SquareRoot, NthRoot } from "../commands/sqrt";
 import { Subscript, Superscript, SupSub } from "../commands/supsub";
-import { Parentheses, SquareBrackets, CurlyBraces } from "../commands/brackets";
-import { OperatorName } from "../commands/text";
+import {
+  Bracket,
+  Parentheses,
+  SquareBrackets,
+  CurlyBraces,
+  AbsoluteValue,
+  AngleBrackets,
+} from "../commands/brackets";
+import { OperatorName, isOperatorName } from "../commands/text";
 import { BinomialCoefficient } from "../commands/binom";
 import {
   LatexCommandInput,
   LATEX_COMMANDS,
 } from "../commands/latexCommandInput";
-import { Matrix } from "../commands/matrix";
+import { Matrix, MatrixType } from "../commands/matrix";
 import { Accent, TextMode } from "../commands/accent";
+import {
+  Derivative,
+  IntegralTemplate,
+  SumProductTemplate,
+  LimitTemplate,
+  LogBase,
+  DMS,
+  BaseSuperscript,
+  BaseSubscript,
+} from "../commands/templates";
 import { parseLatex, LatexNode } from "../parser";
 import {
   LargeOperator,
@@ -228,7 +245,7 @@ export class Controller {
 
     // Find clicked position and move cursor there
     const target = e.target as HTMLElement;
-    this.seekToElement(target, e.clientX);
+    this.seekToElement(target, e.clientX, e.clientY);
 
     // Start drag selection
     this._isDragging = true;
@@ -277,7 +294,6 @@ export class Controller {
     this._focused = true;
     this.container?.classList.add("aphelion-focused");
     this.cursor.show().startBlink();
-    this.options.handlers?.enter?.(this);
   };
 
   private handleBlur = (): void => {
@@ -432,6 +448,7 @@ export class Controller {
       case "Backspace":
         e.preventDefault();
         this.cursor.backspace();
+        this.checkAutoOperator();
         this.updateDom();
         this.triggerEdit();
         break;
@@ -439,17 +456,44 @@ export class Controller {
       case "Delete":
         e.preventDefault();
         this.cursor.deleteForward();
+        this.checkAutoOperator();
         this.updateDom();
         this.triggerEdit();
         break;
 
       case "Enter":
         e.preventDefault();
-        // Could trigger submit or newline based on config
+        this.options.handlers?.enter?.(this);
         break;
 
       case "Tab":
-        // Allow natural tab behavior, or could navigate between blocks
+        if (this.cursor.tab(R)) {
+          e.preventDefault();
+          this.updateDom();
+          this.announce();
+        }
+        break;
+
+      case "Shift-Tab":
+        if (this.cursor.tab(L)) {
+          e.preventDefault();
+          this.updateDom();
+          this.announce();
+        }
+        break;
+
+      case "Shift-Up":
+        e.preventDefault();
+        this.cursor.select(L);
+        this.updateDom();
+        this.announce();
+        break;
+
+      case "Shift-Down":
+        e.preventDefault();
+        this.cursor.select(R);
+        this.updateDom();
+        this.announce();
         break;
 
       case "Escape":
@@ -482,7 +526,7 @@ export class Controller {
       // Math shortcuts
       case "/":
         e.preventDefault();
-        this.insertFraction();
+        this.insertSlashFraction();
         break;
 
       case "^":
@@ -500,14 +544,34 @@ export class Controller {
         this.insertParentheses();
         break;
 
+      case ")":
+        e.preventDefault();
+        this.closeBracket(")");
+        break;
+
       case "[":
         e.preventDefault();
         this.insertSquareBrackets();
         break;
 
+      case "]":
+        e.preventDefault();
+        this.closeBracket("]");
+        break;
+
       case "{":
         e.preventDefault();
         this.insertCurlyBraces();
+        break;
+
+      case "}":
+        e.preventDefault();
+        this.closeBracket("}");
+        break;
+
+      case "|":
+        e.preventDefault();
+        this.toggleAbsoluteValue();
         break;
 
       default:
@@ -516,7 +580,7 @@ export class Controller {
     }
   };
 
-  private handleInput = (e: Event): void => {
+  private handleInput = (_e: Event): void => {
     const textarea = this.textarea;
     if (!textarea) return;
 
@@ -601,7 +665,7 @@ export class Controller {
         this.startCommandInput();
         return;
       case "/":
-        this.insertFraction();
+        this.insertSlashFraction();
         return;
       case "^":
         this.insertSuperscript();
@@ -610,14 +674,36 @@ export class Controller {
         this.insertSubscript();
         return;
       case "(":
-      case ")":
         this.insertParentheses();
+        return;
+      case ")":
+        this.closeBracket(")");
+        return;
+      case "[":
+        this.insertSquareBrackets();
+        return;
+      case "]":
+        this.closeBracket("]");
+        return;
+      case "{":
+        this.insertCurlyBraces();
+        return;
+      case "}":
+        this.closeBracket("}");
+        return;
+      case "|":
+        this.toggleAbsoluteValue();
         return;
     }
 
     // Regular character - create a symbol node
     const symbol = createSymbolFromChar(char);
     this.cursor.insert(symbol);
+
+    // Auto-detect operator names (solve, sin, cos, diff, etc.)
+    if (/^[a-zA-Z]$/.test(char)) {
+      this.checkAutoOperator();
+    }
 
     // Check if we're in a TextMode that should auto-exit after one character
     const block = this.cursor.parent;
@@ -630,6 +716,80 @@ export class Controller {
       // Move cursor out of the TextMode to the right
       this.cursor.moveRight();
     }
+  }
+
+  /**
+   * Check if recent letters before cursor form a recognized operator name
+   * (e.g. 'solve', 'sin', 'cos', 'ln', 'diff', etc.) and replace them with an OperatorName.
+   */
+  private checkAutoOperator(): void {
+    const parent = this.cursor.parent;
+    if (!parent) return;
+
+    // Collect preceding consecutive MathSymbol letters
+    const letters: { node: NodeBase; char: string }[] = [];
+    let curr: NodeBase | undefined = this.cursor[L];
+
+    while (curr instanceof MathSymbol) {
+      const text = curr.text();
+      if (/^[a-zA-Z]$/.test(text)) {
+        letters.unshift({ node: curr, char: text });
+        curr = curr[L];
+      } else {
+        break;
+      }
+    }
+
+    if (letters.length === 0) return;
+
+    const fullWord = letters.map((l) => l.char).join("");
+
+    // Check suffixes from longest to shortest
+    for (let startIdx = 0; startIdx < letters.length; startIdx++) {
+      const candidate = fullWord.slice(startIdx);
+      const matchedName = this.findOperatorMatch(candidate);
+      if (matchedName) {
+        const matchedNodes = letters.slice(startIdx).map((l) => l.node);
+        const leftNeighbor = matchedNodes[0]![L];
+        const rightNeighbor = this.cursor[R];
+
+        for (const n of matchedNodes) {
+          n.remove();
+        }
+
+        const opNode = new OperatorName(matchedName);
+        this.cursor.moveTo(parent, leftNeighbor, rightNeighbor);
+        this.cursor.insert(opNode);
+        this.updateDom();
+        return;
+      }
+    }
+  }
+
+  /**
+   * Find matching operator name if candidate matches recognized operators.
+   */
+  private findOperatorMatch(candidate: string): string | undefined {
+    // 1. Check custom autoOperatorNames from config if configured
+    if (this.options.autoOperatorNames) {
+      const customNames = this.options.autoOperatorNames.split(/\s+/);
+      const found = customNames.find(
+        (n: string) => n.toLowerCase() === candidate.toLowerCase(),
+      );
+      if (found) return found;
+    }
+
+    // 2. Check built-in operators
+    const lower = candidate.toLowerCase();
+    if (isOperatorName(lower)) {
+      return lower;
+    }
+    // Also check case-sensitive names (e.g. cSolve, nSolve, fMax, fMin)
+    if (isOperatorName(candidate)) {
+      return candidate;
+    }
+
+    return undefined;
   }
 
   /**
@@ -734,7 +894,7 @@ export class Controller {
    */
   private executeCommand(
     cmdDef: (typeof LATEX_COMMANDS)[string],
-    name: string,
+    _name: string,
   ): void {
     switch (cmdDef.type) {
       case "fraction":
@@ -855,10 +1015,24 @@ export class Controller {
    * Paste text (assumed to be LaTeX).
    */
   paste(text: string): void {
+    const parentBlock = this.cursor.parent;
+    const beforeNode = this.cursor[L];
     try {
       // Try to parse as LaTeX
       const nodes = parseLatex(text);
       this.insertParsedNodes(nodes);
+
+      // If any newly inserted node has an empty InnerBlock, focus the first one
+      let scanNode = beforeNode ? beforeNode[R] : parentBlock.ends[L];
+      while (scanNode) {
+        const emptyBlock = this.findFirstEmptyBlock(scanNode);
+        if (emptyBlock) {
+          this.cursor.moveTo(emptyBlock);
+          break;
+        }
+        if (scanNode === this.cursor[L]) break;
+        scanNode = scanNode[R];
+      }
     } catch {
       // Fall back to typing as plain text
       this.typedText(text);
@@ -868,10 +1042,351 @@ export class Controller {
   }
 
   /**
-   * Insert parsed LaTeX nodes.
+   * Find the first empty InnerBlock inside a node.
+   */
+  private findFirstEmptyBlock(node: NodeBase): MathBlock | undefined {
+    if (node instanceof MathBlock) {
+      if (node.isEmpty()) return node;
+      for (const child of node.children()) {
+        const found = this.findFirstEmptyBlock(child);
+        if (found) return found;
+      }
+      return undefined;
+    }
+    for (const child of node.children()) {
+      const found = this.findFirstEmptyBlock(child);
+      if (found) return found;
+    }
+    return undefined;
+  }
+
+  /**
+   * Check whether an AST node is a placeholder square (\square / □).
+   */
+  private isSquareNode(node?: LatexNode): boolean {
+    if (!node) return false;
+    if (
+      node.type === "symbol" &&
+      (node.command === "\\square" || node.value === "□")
+    ) {
+      return true;
+    }
+    if (node.type === "group") {
+      const nonSpace = node.content.filter((n) => n.type !== "space");
+      return nonSpace.length === 1 && this.isSquareNode(nonSpace[0]);
+    }
+    return false;
+  }
+
+  /**
+   * Check whether an AST node array represents an empty placeholder (\square).
+   */
+  private isSquareList(nodes?: LatexNode[]): boolean {
+    if (!nodes) return false;
+    const nonSpace = nodes.filter((n) => n.type !== "space");
+    return nonSpace.length === 1 && this.isSquareNode(nonSpace[0]);
+  }
+
+  /**
+   * Unwrap \left(...\right) or group nodes when filling a template body block.
+   */
+  private unwrapBodyNodes(node: LatexNode): LatexNode[] {
+    if (
+      node.type === "command" &&
+      node.name === "\\left(" &&
+      node.args[0]
+    ) {
+      return node.args[0];
+    }
+    if (node.type === "group") {
+      return node.content;
+    }
+    return [node];
+  }
+
+  /**
+   * Insert parsed LaTeX nodes (recognizing multi-node CAS templates).
    */
   private insertParsedNodes(nodes: LatexNode[]): void {
-    for (const node of nodes) {
+    // Strip space-only nodes when matching sequential patterns, while keeping indices
+    for (let i = 0; i < nodes.length; i++) {
+      const node = nodes[i]!;
+      if (node.type === "space") continue;
+
+      // Helper to find next non-space node index
+      const nextIdx = (from: number): number => {
+        let j = from + 1;
+        while (j < nodes.length && nodes[j]?.type === "space") j++;
+        return j;
+      };
+
+      // 1. Check for DMS template: {deg}^\circ {min}^\prime {sec}^{\prime\prime}
+      const j1 = nextIdx(i);
+      const j2 = nextIdx(j1);
+      if (
+        node.type === "superscript" &&
+        node.sup.some(
+          (s) =>
+            s.type === "symbol" &&
+            (s.command === "\\circ" || s.value === "∘"),
+        ) &&
+        nodes[j1]?.type === "superscript" &&
+        (nodes[j1] as import("../parser").LatexSuperscript).sup.length === 1 &&
+        (nodes[j1] as import("../parser").LatexSuperscript).sup[0]?.type ===
+          "symbol" &&
+        ((
+          (nodes[j1] as import("../parser").LatexSuperscript)
+            .sup[0] as import("../parser").LatexSymbol
+        ).command === "\\prime" ||
+          (
+            (nodes[j1] as import("../parser").LatexSuperscript)
+              .sup[0] as import("../parser").LatexSymbol
+          ).value === "′") &&
+        nodes[j2]?.type === "superscript" &&
+        (nodes[j2] as import("../parser").LatexSuperscript).sup.length >= 2
+      ) {
+        const dms = new DMS();
+        this.cursor.insert(dms);
+        this.fillBlockWithNodes(dms.degrees, node.base);
+        this.fillBlockWithNodes(
+          dms.minutes,
+          (nodes[j1] as import("../parser").LatexSuperscript).base,
+        );
+        this.fillBlockWithNodes(
+          dms.seconds,
+          (nodes[j2] as import("../parser").LatexSuperscript).base,
+        );
+        i = j2;
+        continue;
+      }
+
+      // 2. Check for Derivative template: \dfrac{d...}{d...} followed by \left(...\right) or placeholder
+      if (
+        node.type === "command" &&
+        (node.name === "\\dfrac" ||
+          node.name === "\\frac" ||
+          node.name === "\\tfrac") &&
+        node.args[0] &&
+        node.args[1] &&
+        j1 < nodes.length
+      ) {
+        const num = node.args[0].filter((n) => n.type !== "space");
+        const den = node.args[1].filter((n) => n.type !== "space");
+        const nextNode = nodes[j1]!;
+
+        // First derivative: num = [char('d')], den = [char('d'), ...var]
+        if (
+          num.length === 1 &&
+          num[0]?.type === "char" &&
+          num[0].value === "d" &&
+          den.length >= 2 &&
+          den[0]?.type === "char" &&
+          den[0].value === "d" &&
+          (nextNode.type === "command" || this.isSquareNode(nextNode))
+        ) {
+          const deriv = new Derivative(1);
+          this.cursor.insert(deriv);
+          this.fillBlockWithNodes(deriv.variable, den.slice(1));
+          this.fillBlockWithNodes(deriv.body, this.unwrapBodyNodes(nextNode));
+          i = j1;
+          continue;
+        }
+
+        // Second or Nth derivative: num = [superscript(base=[char('d')], sup=...)], den = [char('d'), superscript(base=var, sup=...)]
+        if (
+          num.length === 1 &&
+          num[0]?.type === "superscript" &&
+          num[0].base.length === 1 &&
+          num[0].base[0]?.type === "char" &&
+          num[0].base[0].value === "d" &&
+          den.length >= 2 &&
+          den[0]?.type === "char" &&
+          den[0].value === "d" &&
+          den[1]?.type === "superscript" &&
+          (nextNode.type === "command" || this.isSquareNode(nextNode))
+        ) {
+          const supNodes = num[0].sup.filter((n) => n.type !== "space");
+          const isSecond =
+            supNodes.length === 1 &&
+            supNodes[0]?.type === "digit" &&
+            supNodes[0].value === "2";
+          const deriv = new Derivative(isSecond ? 2 : "n");
+          this.cursor.insert(deriv);
+          if (!isSecond && deriv.orderBlock) {
+            this.fillBlockWithNodes(deriv.orderBlock, supNodes);
+          }
+          this.fillBlockWithNodes(deriv.variable, den[1].base);
+          this.fillBlockWithNodes(deriv.body, this.unwrapBodyNodes(nextNode));
+          i = j1;
+          continue;
+        }
+      }
+
+      // 3. Check for LogBase template: \log_{base}\left(arg\right)
+      if (
+        node.type === "subscript" &&
+        node.base.length === 1 &&
+        node.base[0]?.type === "symbol" &&
+        (node.base[0].command === "\\log" || node.base[0].value === "log") &&
+        j1 < nodes.length &&
+        (nodes[j1]?.type === "command" || this.isSquareNode(nodes[j1]))
+      ) {
+        const logNode = new LogBase();
+        this.cursor.insert(logNode);
+        this.fillBlockWithNodes(logNode.base, node.sub);
+        this.fillBlockWithNodes(
+          logNode.argument,
+          this.unwrapBodyNodes(nodes[j1]!),
+        );
+        i = j1;
+        continue;
+      }
+
+      // 4. Check for LimitTemplate: \lim_{var \to target} body
+      if (
+        node.type === "subscript" &&
+        this.getLimitFromBase(node.base) &&
+        j1 < nodes.length
+      ) {
+        const toIdx = node.sub.findIndex(
+          (n) =>
+            n.type === "symbol" &&
+            (n.command === "\\to" ||
+              n.command === "\\rightarrow" ||
+              n.value === "→"),
+        );
+        if (toIdx !== -1) {
+          const limTpl = new LimitTemplate();
+          this.cursor.insert(limTpl);
+          this.fillBlockWithNodes(limTpl.variable, node.sub.slice(0, toIdx));
+          this.fillBlockWithNodes(limTpl.target, node.sub.slice(toIdx + 1));
+          this.fillBlockWithNodes(
+            limTpl.body,
+            this.unwrapBodyNodes(nodes[j1]!),
+          );
+          i = j1;
+          continue;
+        }
+      }
+
+      // 5. Check for SumProductTemplate: \sum_{var=lower}^{upper} body (when template placeholder or \left(...) body is present)
+      if (node.type === "subsup" && j1 < nodes.length) {
+        const opCmd = this.getLargeOperatorFromBase(node.base);
+        if (opCmd === "\\sum" || opCmd === "\\prod") {
+          const eqIdx = node.sub.findIndex(
+            (n) => n.type === "symbol" && n.value === "=",
+          );
+          const nextNode = nodes[j1]!;
+          const isTemplateForm =
+            this.isSquareNode(nextNode) ||
+            (nextNode.type === "command" && nextNode.name === "\\left(") ||
+            node.sub.some((n) => this.isSquareNode(n)) ||
+            node.sup.some((n) => this.isSquareNode(n));
+
+          if (eqIdx !== -1 && isTemplateForm) {
+            const tpl = new SumProductTemplate(
+              opCmd === "\\sum" ? "sum" : "prod",
+            );
+            this.cursor.insert(tpl);
+            this.fillBlockWithNodes(tpl.variable, node.sub.slice(0, eqIdx));
+            this.fillBlockWithNodes(tpl.lower, node.sub.slice(eqIdx + 1));
+            this.fillBlockWithNodes(tpl.upper, node.sup);
+            this.fillBlockWithNodes(tpl.body, this.unwrapBodyNodes(nextNode));
+            i = j1;
+            continue;
+          }
+        }
+      }
+
+      // 6. Check for IntegralTemplate: \int_{lower}^{upper} integrand d<var> OR \int integrand d<var>
+      const isDefiniteInt =
+        node.type === "subsup" &&
+        this.getLargeOperatorFromBase(node.base) === "\\int";
+      const isIndefiniteInt =
+        node.type === "symbol" &&
+        (node.command === "\\int" || node.value === "∫");
+
+      if ((isDefiniteInt || isIndefiniteInt) && j1 < nodes.length) {
+        // Scan ahead for `char('d')` followed by a variable node
+        let dIdx = -1;
+        for (let k = i + 1; k < nodes.length - 1; k++) {
+          const candidate = nodes[k];
+          if (candidate?.type === "char" && candidate.value === "d") {
+            const afterD = nextIdx(k);
+            if (afterD < nodes.length) {
+              dIdx = k;
+              break;
+            }
+          }
+        }
+        if (dIdx !== -1) {
+          const varIdx = nextIdx(dIdx);
+          const integrandNodes = nodes.slice(i + 1, dIdx).filter(
+            (n) =>
+              !(
+                n.type === "symbol" &&
+                (n.command === "\\," ||
+                  n.command === "\\;" ||
+                  n.command === "\\ ")
+              ),
+          );
+          const intTpl = new IntegralTemplate(isDefiniteInt);
+          this.cursor.insert(intTpl);
+          if (isDefiniteInt && intTpl.lower && intTpl.upper) {
+            const subSupNode = node as import("../parser").LatexSubSup;
+            this.fillBlockWithNodes(intTpl.lower, subSupNode.sub);
+            this.fillBlockWithNodes(intTpl.upper, subSupNode.sup);
+          }
+          if (
+            integrandNodes.length === 1 &&
+            integrandNodes[0]?.type === "command" &&
+            integrandNodes[0].name === "\\left("
+          ) {
+            this.fillBlockWithNodes(
+              intTpl.integrand,
+              this.unwrapBodyNodes(integrandNodes[0]),
+            );
+          } else {
+            this.fillBlockWithNodes(intTpl.integrand, integrandNodes);
+          }
+          this.fillBlockWithNodes(intTpl.variable, [nodes[varIdx]!]);
+          i = varIdx;
+          continue;
+        }
+      }
+
+      // 7. Check for contiguous letters forming an operator name (e.g. solve, diff, sin, cos)
+      if (node.type === "char" && /^[a-zA-Z]$/.test(node.value)) {
+        let k = i;
+        let word = "";
+        while (k < nodes.length) {
+          const cand = nodes[k];
+          if (cand && cand.type === "char" && /^[a-zA-Z]$/.test(cand.value)) {
+            word += cand.value;
+            k++;
+          } else {
+            break;
+          }
+        }
+        let matchedLen = 0;
+        let matchedOp = "";
+        for (let len = word.length; len >= 2; len--) {
+          const sub = word.slice(0, len);
+          const match = this.findOperatorMatch(sub);
+          if (match) {
+            matchedLen = len;
+            matchedOp = match;
+            break;
+          }
+        }
+        if (matchedLen > 0) {
+          const op = new OperatorName(matchedOp);
+          this.cursor.insert(op);
+          i += matchedLen - 1;
+          continue;
+        }
+      }
+
       this.insertAstNode(node);
     }
   }
@@ -889,6 +1404,16 @@ export class Controller {
       }
 
       case "symbol": {
+        // Skip \square placeholder symbols so template blocks stay empty placeholders
+        if (node.command === "\\square" || node.value === "□") {
+          break;
+        }
+        const opMatch = this.findOperatorMatch(node.value);
+        if (opMatch) {
+          const op = new OperatorName(opMatch);
+          this.cursor.insert(op);
+          break;
+        }
         const symbol = new MathSymbol(
           node.value,
           node.command || node.value,
@@ -903,10 +1428,8 @@ export class Controller {
         break;
 
       case "group": {
-        // Insert content of the group
-        for (const child of node.content) {
-          this.insertAstNode(child);
-        }
+        // Insert content of the group through insertParsedNodes to preserve multi-node patterns & operator detection
+        this.insertParsedNodes(node.content);
         break;
       }
 
@@ -915,6 +1438,14 @@ export class Controller {
         break;
 
       case "subscript": {
+        // Check if base is an empty placeholder {\square}_{\square}
+        if (this.isSquareList(node.base)) {
+          const baseSub = new BaseSubscript();
+          this.cursor.insert(baseSub);
+          this.fillBlockWithNodes(baseSub.base, node.base);
+          this.fillBlockWithNodes(baseSub.sub, node.sub);
+          break;
+        }
         // Check if base is a large operator command
         const subBaseCmd = this.getLargeOperatorFromBase(node.base);
         if (subBaseCmd) {
@@ -947,6 +1478,14 @@ export class Controller {
       }
 
       case "superscript": {
+        // Check if base is an empty placeholder {\square}^{\square}
+        if (this.isSquareList(node.base)) {
+          const baseSup = new BaseSuperscript();
+          this.cursor.insert(baseSup);
+          this.fillBlockWithNodes(baseSup.base, node.base);
+          this.fillBlockWithNodes(baseSup.sup, node.sup);
+          break;
+        }
         // Check if base is a large operator command
         const supBaseCmd = this.getLargeOperatorFromBase(node.base);
         if (supBaseCmd) {
@@ -1006,13 +1545,7 @@ export class Controller {
       case "matrix": {
         // Create a matrix with the parsed structure
         const matrixNode = node as import("../parser").LatexNode & {
-          matrixType:
-            | "matrix"
-            | "pmatrix"
-            | "bmatrix"
-            | "Bmatrix"
-            | "vmatrix"
-            | "Vmatrix";
+          matrixType: MatrixType;
           cells: import("../parser").LatexNode[][][];
         };
         const rows = matrixNode.cells.length || 2;
@@ -1048,13 +1581,33 @@ export class Controller {
     // Move cursor into the block
     this.cursor.moveTo(block);
 
-    // Insert all nodes
-    for (const node of nodes) {
-      this.insertAstNode(node);
-    }
+    // Insert all nodes with full template and operator recognition
+    this.insertParsedNodes(nodes);
 
     // Restore cursor position
     this.cursor.restorePosition(savedPosition);
+  }
+
+  /**
+   * Helper to recursively extract text characters from AST nodes.
+   */
+  private extractTextFromAstNodes(nodes?: LatexNode[]): string {
+    if (!nodes) return "";
+    let str = "";
+    for (const n of nodes) {
+      if ("value" in n && typeof (n as { value?: unknown }).value === "string") {
+        str += (n as { value: string }).value;
+      } else if (
+        n.type === "group" &&
+        "content" in n &&
+        Array.isArray((n as import("../parser").LatexGroup).content)
+      ) {
+        str += this.extractTextFromAstNodes(
+          (n as import("../parser").LatexGroup).content,
+        );
+      }
+    }
+    return str;
   }
 
   /**
@@ -1090,6 +1643,41 @@ export class Controller {
           this.cursor.insert(sqrt);
           if (args[0]) this.fillBlockWithNodes(sqrt.radicand, args[0]);
         }
+        break;
+      }
+
+      case "\\left(": {
+        const parens = new Parentheses();
+        this.cursor.insert(parens);
+        if (args[0]) this.fillBlockWithNodes(parens.content, args[0]);
+        break;
+      }
+
+      case "\\left[": {
+        const brackets = new SquareBrackets();
+        this.cursor.insert(brackets);
+        if (args[0]) this.fillBlockWithNodes(brackets.content, args[0]);
+        break;
+      }
+
+      case "\\left\\{": {
+        const braces = new CurlyBraces();
+        this.cursor.insert(braces);
+        if (args[0]) this.fillBlockWithNodes(braces.content, args[0]);
+        break;
+      }
+
+      case "\\left|": {
+        const abs = new AbsoluteValue();
+        this.cursor.insert(abs);
+        if (args[0]) this.fillBlockWithNodes(abs.content, args[0]);
+        break;
+      }
+
+      case "\\left\\langle": {
+        const angle = new AngleBrackets();
+        this.cursor.insert(angle);
+        if (args[0]) this.fillBlockWithNodes(angle.content, args[0]);
         break;
       }
 
@@ -1222,21 +1810,48 @@ export class Controller {
           "\\overbrace": "⏞", // U+23DE
           "\\underbrace": "⏟", // U+23DF
         };
-        const accentChar = accentMap[name] || "̄"; // fallback to bar
+        const accentChar = accentMap[name] || "̄"; // fallback to bar 
+        // YO UH WHY? FIXME: WHY FALLBACK AT ALL? SHOULD THROW ERROR INSTEAD?
         const accentNode = new Accent(accentChar, name);
         this.cursor.insert(accentNode);
         if (args[0]) this.fillBlockWithNodes(accentNode.content, args[0]);
         break;
       }
 
-      // Text mode commands (\\text, \\\mathrm, \\\mathit, \\\mathbb, etc.)
+      case "\\mathrm":
+      case "\\operatorname": {
+        const textStr = this.extractTextFromAstNodes(args[0]);
+        if (textStr) {
+          const match = this.findOperatorMatch(textStr) || textStr;
+          const op = new OperatorName(match);
+          this.cursor.insert(op);
+          break;
+        }
+        const textNode = new TextMode(name);
+        this.cursor.insert(textNode);
+        if (args[0]) this.fillBlockWithNodes(textNode.content, args[0]);
+        break;
+      }
+
+      // Text mode commands (\\text, \\\textrm, \\\mathit, \\\mathbb, etc.)
       case "\\text":
-      case "\\textrm":
+      case "\\textrm": {
+        const textStr = this.extractTextFromAstNodes(args[0]);
+        const match = textStr ? this.findOperatorMatch(textStr) : undefined;
+        if (match) {
+          const op = new OperatorName(match);
+          this.cursor.insert(op);
+          break;
+        }
+        const textNode = new TextMode(name);
+        this.cursor.insert(textNode);
+        if (args[0]) this.fillBlockWithNodes(textNode.content, args[0]);
+        break;
+      }
       case "\\textbf":
       case "\\textit":
       case "\\textsf":
       case "\\texttt":
-      case "\\mathrm":
       case "\\mathit":
       case "\\mathbf":
       case "\\mathsf":
@@ -1435,6 +2050,86 @@ export class Controller {
   }
 
   /**
+   * Insert a fraction triggered by typing `/`:
+   * If there is a selection or a preceding operand, wrap it into the numerator
+   * and position the cursor in the denominator.
+   */
+  insertSlashFraction(): void {
+    const parent = this.cursor.parent;
+
+    // 1. If selection exists, move selected nodes into numerator
+    if (this.cursor.selection) {
+      const nodes = [...this.cursor.selection];
+      this.cursor.deleteSelection();
+      const frac = new Fraction();
+      this.cursor.insert(frac);
+      for (const n of nodes) {
+        frac.numerator.appendChild(n);
+      }
+      this.cursor.moveTo(frac.denominator);
+      this.updateDom();
+      this.triggerEdit();
+      return;
+    }
+
+    // 2. Check if there is a preceding operand to scoop into numerator
+    const operandNodes: NodeBase[] = [];
+    let curr = this.cursor[L];
+    const isBinaryOrRelOp = (n: NodeBase): boolean => {
+      if (n instanceof MathSymbol) {
+        return /^[+\-*/=<>≤≥≠±∓·×÷,;:|]$/.test(n.text());
+      }
+      return false;
+    };
+
+    if (curr && !isBinaryOrRelOp(curr)) {
+      if (
+        curr instanceof Superscript ||
+        curr instanceof Subscript ||
+        curr instanceof SupSub
+      ) {
+        operandNodes.unshift(curr);
+        curr = curr[L];
+      }
+
+      if (curr instanceof Bracket) {
+        operandNodes.unshift(curr);
+        curr = curr[L];
+        if (curr instanceof OperatorName) {
+          operandNodes.unshift(curr);
+        }
+      } else if (curr instanceof MathSymbol && /^[0-9.]$/.test(curr.text())) {
+        while (curr && curr instanceof MathSymbol && /^[0-9.]$/.test(curr.text())) {
+          operandNodes.unshift(curr);
+          curr = curr[L];
+        }
+      } else if (curr && !isBinaryOrRelOp(curr)) {
+        operandNodes.unshift(curr);
+      }
+    }
+
+    if (operandNodes.length > 0) {
+      const leftNeighbor = operandNodes[0]![L];
+      const rightNeighbor = this.cursor[R];
+      for (const n of operandNodes) {
+        n.remove();
+      }
+      this.cursor.moveTo(parent, leftNeighbor, rightNeighbor);
+      const frac = new Fraction();
+      this.cursor.insert(frac);
+      for (const n of operandNodes) {
+        frac.numerator.appendChild(n);
+      }
+      this.cursor.moveTo(frac.denominator);
+      this.updateDom();
+      this.triggerEdit();
+      return;
+    }
+
+    this.insertFraction();
+  }
+
+  /**
    * Insert a square root at cursor.
    */
   insertSquareRoot(): void {
@@ -1447,9 +2142,39 @@ export class Controller {
   }
 
   /**
-   * Insert superscript at cursor.
+   * Insert an nth root at cursor.
+   */
+  insertNthRoot(): void {
+    const nth = new NthRoot();
+    this.cursor.insert(nth);
+    this.cursor.moveTo(nth.index);
+    this.updateDom();
+    this.triggerEdit();
+  }
+
+  /**
+   * Insert superscript at cursor (or upgrade an adjacent Subscript to SupSub).
    */
   insertSuperscript(): void {
+    const prev = this.cursor[L];
+    if (prev instanceof Subscript && prev.parent instanceof MathBlock) {
+      const parent = prev.parent;
+      const leftSib = prev[L];
+      const rightSib = prev[R];
+      const subChildren = [...prev.sub.children()];
+      prev.remove();
+      this.cursor.moveTo(parent, leftSib, rightSib);
+      const supsub = new SupSub();
+      for (const ch of subChildren) {
+        ch.remove();
+        supsub.sub.appendChild(ch);
+      }
+      this.cursor.insert(supsub);
+      this.cursor.moveTo(supsub.sup);
+      this.updateDom();
+      this.triggerEdit();
+      return;
+    }
     const sup = new Superscript();
     this.cursor.insert(sup);
     this.cursor.moveTo(sup.sup);
@@ -1458,9 +2183,28 @@ export class Controller {
   }
 
   /**
-   * Insert subscript at cursor.
+   * Insert subscript at cursor (or upgrade an adjacent Superscript to SupSub).
    */
   insertSubscript(): void {
+    const prev = this.cursor[L];
+    if (prev instanceof Superscript && prev.parent instanceof MathBlock) {
+      const parent = prev.parent;
+      const leftSib = prev[L];
+      const rightSib = prev[R];
+      const supChildren = [...prev.sup.children()];
+      prev.remove();
+      this.cursor.moveTo(parent, leftSib, rightSib);
+      const supsub = new SupSub();
+      for (const ch of supChildren) {
+        ch.remove();
+        supsub.sup.appendChild(ch);
+      }
+      this.cursor.insert(supsub);
+      this.cursor.moveTo(supsub.sub);
+      this.updateDom();
+      this.triggerEdit();
+      return;
+    }
     const sub = new Subscript();
     this.cursor.insert(sub);
     this.cursor.moveTo(sub.sub);
@@ -1502,6 +2246,148 @@ export class Controller {
   }
 
   /**
+   * Insert absolute value bars at cursor.
+   */
+  insertAbsoluteValue(): void {
+    const abs = new AbsoluteValue();
+    this.cursor.insert(abs);
+    this.cursor.moveTo(abs.content);
+    this.updateDom();
+    this.triggerEdit();
+  }
+
+  /**
+   * Step out of a matching open Bracket if currently inside one, otherwise insert a symbol/bracket.
+   */
+  closeBracket(closeChar: ")" | "]" | "}"): void {
+    const block = this.cursor.parent;
+    const parentNode = block.parent;
+    if (
+      parentNode instanceof Bracket &&
+      parentNode.close === closeChar &&
+      parentNode.parent instanceof MathBlock
+    ) {
+      this.cursor.moveTo(parentNode.parent, parentNode, parentNode[R]);
+      this.updateDom();
+      return;
+    }
+    // If not inside a matching bracket, insert paired brackets or symbol
+    if (closeChar === ")") {
+      this.insertParentheses();
+    } else if (closeChar === "]") {
+      this.insertSquareBrackets();
+    } else {
+      this.insertCurlyBraces();
+    }
+  }
+
+  /**
+   * Toggle or step out of AbsoluteValue on `|`.
+   */
+  toggleAbsoluteValue(): void {
+    const block = this.cursor.parent;
+    const parentNode = block.parent;
+    if (
+      parentNode instanceof AbsoluteValue &&
+      !this.cursor[R] &&
+      parentNode.parent instanceof MathBlock
+    ) {
+      this.cursor.moveTo(parentNode.parent, parentNode, parentNode[R]);
+      this.updateDom();
+      return;
+    }
+    this.insertAbsoluteValue();
+  }
+
+  /**
+   * Insert a Derivative template node.
+   */
+  insertDerivative(order: 1 | 2 | "n" = 1): void {
+    const deriv = new Derivative(order);
+    this.cursor.insert(deriv);
+    this.cursor.moveTo(deriv.orderBlock ?? deriv.variable);
+    this.updateDom();
+    this.triggerEdit();
+  }
+
+  /**
+   * Insert an IntegralTemplate node.
+   */
+  insertIntegralTemplate(withLimits = true): void {
+    const intTpl = new IntegralTemplate(withLimits);
+    this.cursor.insert(intTpl);
+    this.cursor.moveTo(intTpl.lower ?? intTpl.integrand);
+    this.updateDom();
+    this.triggerEdit();
+  }
+
+  /**
+   * Insert a SumProductTemplate node.
+   */
+  insertSumProductTemplate(kind: "sum" | "prod" = "sum"): void {
+    const tpl = new SumProductTemplate(kind);
+    this.cursor.insert(tpl);
+    this.cursor.moveTo(tpl.variable);
+    this.updateDom();
+    this.triggerEdit();
+  }
+
+  /**
+   * Insert a LimitTemplate node.
+   */
+  insertLimitTemplate(): void {
+    const tpl = new LimitTemplate();
+    this.cursor.insert(tpl);
+    this.cursor.moveTo(tpl.variable);
+    this.updateDom();
+    this.triggerEdit();
+  }
+
+  /**
+   * Insert a LogBase template node.
+   */
+  insertLogBase(): void {
+    const log = new LogBase();
+    this.cursor.insert(log);
+    this.cursor.moveTo(log.base);
+    this.updateDom();
+    this.triggerEdit();
+  }
+
+  /**
+   * Insert a DMS (degrees/minutes/seconds) template node.
+   */
+  insertDMS(): void {
+    const dms = new DMS();
+    this.cursor.insert(dms);
+    this.cursor.moveTo(dms.degrees);
+    this.updateDom();
+    this.triggerEdit();
+  }
+
+  /**
+   * Insert a BaseSuperscript template node.
+   */
+  insertBaseSuperscript(): void {
+    const node = new BaseSuperscript();
+    this.cursor.insert(node);
+    this.cursor.moveTo(node.base);
+    this.updateDom();
+    this.triggerEdit();
+  }
+
+  /**
+   * Insert a BaseSubscript template node.
+   */
+  insertBaseSubscript(): void {
+    const node = new BaseSubscript();
+    this.cursor.insert(node);
+    this.cursor.moveTo(node.base);
+    this.updateDom();
+    this.triggerEdit();
+  }
+
+  /**
    * Insert a text mode command at cursor (e.g., \text, \mathbb, \mathcal).
    */
   insertTextMode(
@@ -1528,13 +2414,7 @@ export class Controller {
    * Insert a matrix at cursor.
    */
   insertMatrix(
-    matrixType:
-      | "matrix"
-      | "pmatrix"
-      | "bmatrix"
-      | "Bmatrix"
-      | "vmatrix"
-      | "Vmatrix" = "pmatrix",
+    matrixType: MatrixType = "pmatrix",
     rows: number = 2,
     cols: number = 2,
   ): void {
@@ -1625,6 +2505,7 @@ export class Controller {
    */
   updateDom(): void {
     this.root.updateDom();
+    this.root.postOrder((node) => node.reflow());
     this.cursor.show();
   }
 
@@ -1664,9 +2545,29 @@ export class Controller {
   }
 
   /**
+   * Programmatically click at (clientX, clientY) and position cursor.
+   */
+  clickAt(clientX: number, clientY: number, target?: HTMLElement): this {
+    this.focus();
+    this.cursor.clearSelection();
+    const hitTarget =
+      target ??
+      (typeof document.elementFromPoint === "function"
+        ? (document.elementFromPoint(clientX, clientY) as HTMLElement | null)
+        : null) ??
+      this.root.domElement;
+    this.seekToElement(hitTarget, clientX, clientY);
+    return this;
+  }
+
+  /**
    * Seek cursor to an element position based on click coordinates.
    */
-  private seekToElement(target: HTMLElement, clientX: number): void {
+  private seekToElement(
+    target: HTMLElement,
+    clientX: number,
+    clientY = 0,
+  ): void {
     // Find the closest math block or node
     let element: HTMLElement | null = target;
 
@@ -1676,7 +2577,7 @@ export class Controller {
       if (nodeId) {
         const node = this.findNodeById(parseInt(nodeId, 10));
         if (node) {
-          this.seekToNode(node, clientX, element);
+          this.seekToNode(node, clientX, clientY, element);
           return;
         }
       }
@@ -1686,16 +2587,15 @@ export class Controller {
         element.classList.contains("aphelion-root-block") ||
         element.classList.contains("aphelion-inner-block")
       ) {
-        this.seekInBlock(element, clientX);
+        this.seekInBlock(element, clientX, clientY);
         return;
       }
 
       element = element.parentElement;
     }
 
-    // If all else fails, move cursor to end and cry a little
-    this.cursor.moveToEnd();
-    this.cursor.show();
+    // If clicked in container padding, seek in root block
+    this.seekInBlock(this.root.domElement, clientX, clientY);
   }
 
   /**
@@ -1712,49 +2612,67 @@ export class Controller {
       if (found) return found;
     }
 
-    // Check inner blocks (for nodes like Fraction)
-    if (node.ends[L]) {
-      const found = this.findNodeById(id, node.ends[L]);
-      if (found) return found;
-    }
-    if (node.ends[R] && node.ends[R] !== node.ends[L]) {
-      const found = this.findNodeById(id, node.ends[R]);
-      if (found) return found;
-    }
-
     return undefined;
   }
 
   /**
-   * Position cursor relative to a specific node.
+   * Position cursor relative to a specific node using 2D coordinates.
    */
   private seekToNode(
     node: NodeBase,
     clientX: number,
+    clientY: number,
     element: HTMLElement,
   ): void {
     const rect = element.getBoundingClientRect();
     const midX = rect.left + rect.width / 2;
 
-    // If node has children/blocks, try to seek inside
+    // If node has child blocks, find the closest child MathBlock in 2D
     if (node.hasChildren()) {
-      // Find the appropriate inner block
-      const block = node.ends[L] as MathBlock | undefined;
-      if (block) {
-        this.cursor.moveTo(block);
-        this.seekInBlock(block.domElement, clientX);
+      const childBlocks: MathBlock[] = [];
+      for (const child of node.children()) {
+        if (child instanceof MathBlock) {
+          childBlocks.push(child);
+        }
+      }
+
+      if (childBlocks.length > 0) {
+        let bestBlock = childBlocks[0]!;
+        let bestDist = Infinity;
+
+        for (const b of childBlocks) {
+          const bRect = b.domElement.getBoundingClientRect();
+          const dx =
+            clientX < bRect.left
+              ? bRect.left - clientX
+              : clientX > bRect.right
+                ? clientX - bRect.right
+                : 0;
+          const dy =
+            clientY < bRect.top
+              ? bRect.top - clientY
+              : clientY > bRect.bottom
+                ? clientY - bRect.bottom
+                : 0;
+          const dist = dx * dx + dy * dy;
+          if (dist < bestDist) {
+            bestDist = dist;
+            bestBlock = b;
+          }
+        }
+
+        this.cursor.moveTo(bestBlock);
+        this.seekInBlock(bestBlock.domElement, clientX, clientY);
         return;
       }
     }
 
-    // Position cursor before or after this node based on click position
+    // Position cursor before or after this leaf node based on click position
     const parent = node.parent as MathBlock;
     if (parent) {
       if (clientX < midX) {
-        // Click on left half - position cursor before node
         this.cursor.moveTo(parent, node[L], node);
       } else {
-        // Click on right half - position cursor after node
         this.cursor.moveTo(parent, node, node[R]);
       }
     }
@@ -1765,11 +2683,15 @@ export class Controller {
   /**
    * Seek to a position within a block element.
    */
-  private seekInBlock(blockElement: HTMLElement, clientX: number): void {
+  private seekInBlock(
+    blockElement: HTMLElement,
+    clientX: number,
+    _clientY = 0,
+  ): void {
     // Get all direct child elements (nodes in the block)
     const children = Array.from(blockElement.children) as HTMLElement[];
 
-    // Filter out non-node elements (like cursor)
+    // Filter out non-node elements (like cursor and placeholder)
     const nodeElements = children.filter(
       (el) =>
         el.hasAttribute("data-mq-node-id") ||
@@ -1778,7 +2700,6 @@ export class Controller {
 
     if (nodeElements.length === 0) {
       // Empty block - position at start
-      // Find the corresponding MathBlock
       const block = this.findBlockForElement(blockElement);
       if (block) {
         this.cursor.moveTo(block);
@@ -1836,25 +2757,10 @@ export class Controller {
     node: NodeBase,
     element: HTMLElement,
   ): MathBlock | undefined {
-    // Check this node's inner blocks
     for (const child of node.children()) {
       if (child instanceof MathBlock && child.domElement === element) {
         return child;
       }
-      // Check if child has blocks
-      if (
-        child.ends[L] &&
-        (child.ends[L] as MathBlock).domElement === element
-      ) {
-        return child.ends[L] as MathBlock;
-      }
-      if (
-        child.ends[R] &&
-        (child.ends[R] as MathBlock).domElement === element
-      ) {
-        return child.ends[R] as MathBlock;
-      }
-      // Recurse
       const found = this.findBlockInTree(child, element);
       if (found) return found;
     }

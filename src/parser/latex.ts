@@ -6,22 +6,17 @@
 
 import {
   Parser,
+  ParseResult,
+  ParseFailure,
   string,
   satisfy,
   regex,
   map,
-  or,
   choice,
   many,
-  many1,
-  optional,
-  seqLeft,
-  seqRight,
-  seq,
   lazy,
   latexCommand,
   bracedGroup,
-  parse as runParser,
   tryParse,
 } from "./combinators";
 import {
@@ -35,7 +30,6 @@ import {
   subsup,
   symbol,
   space,
-  text,
   matrix,
 } from "./ast";
 
@@ -305,6 +299,7 @@ const MATRIX_TYPES = [
   "Bmatrix",
   "vmatrix",
   "Vmatrix",
+  "cases",
 ] as const;
 type MatrixType = (typeof MATRIX_TYPES)[number];
 
@@ -314,7 +309,7 @@ type MatrixType = (typeof MATRIX_TYPES)[number];
 const matrixEnvironmentParser: Parser<LatexNode> = (input, position = 0) => {
   // Check for \begin{matrixType}
   const beginMatch = input.match(
-    /^\\begin\{(matrix|pmatrix|bmatrix|Bmatrix|vmatrix|Vmatrix)\}/,
+    /^\\begin\{(matrix|pmatrix|bmatrix|Bmatrix|vmatrix|Vmatrix|cases)\}/,
   );
   if (!beginMatch) {
     return { success: false, expected: "matrix environment", position };
@@ -365,25 +360,82 @@ const matrixEnvironmentParser: Parser<LatexNode> = (input, position = 0) => {
 };
 
 /**
+ * Parse \left<delim> ... \right<delim> paired delimiters.
+ */
+const leftRightParser: Parser<LatexNode> = (input, position = 0) => {
+  const leftMatch = input.match(/^\\left\s*(\\\{|\\\}|\(|\[|\||\\langle)/);
+  if (!leftMatch) {
+    return { success: false, expected: "\\left delimiter", position };
+  }
+
+  const openDelim = leftMatch[1]!;
+  let idx = leftMatch[0].length;
+  let depth = 1;
+  let closeStart = -1;
+  let closeEnd = -1;
+
+  while (idx < input.length) {
+    const rest = input.slice(idx);
+    const nextLeft = rest.match(/^\\left\s*(\\\{|\\\}|\(|\[|\||\\langle|\.)/);
+    if (nextLeft) {
+      depth++;
+      idx += nextLeft[0].length;
+      continue;
+    }
+    const nextRight = rest.match(/^\\right\s*(\\\{|\\\}|\)|\]|\||\\rangle|\.)/);
+    if (nextRight) {
+      depth--;
+      if (depth === 0) {
+        closeStart = idx;
+        closeEnd = idx + nextRight[0].length;
+        break;
+      }
+      idx += nextRight[0].length;
+      continue;
+    }
+    idx++;
+  }
+
+  if (closeStart === -1) {
+    return { success: false, expected: "\\right delimiter", position };
+  }
+
+  const innerStr = input.slice(leftMatch[0].length, closeStart);
+  const innerNodes = tryParse(latexContent, innerStr) ?? [];
+  const remaining = input.slice(closeEnd);
+
+  return {
+    success: true,
+    value: command(`\\left${openDelim}`, [innerNodes]),
+    remaining,
+  };
+};
+
+/**
  * Parse LaTeX expression content (the main parser).
  */
 const latexContent: Parser<LatexNode[]> = lazy(() =>
-  many(
-    choice<LatexNode>(
-      // Whitespace - skip or convert to space
-      map(regex(/\s+/), () => space()),
-      // Matrix environments like \begin{pmatrix}...\end{pmatrix}
-      matrixEnvironmentParser,
-      // Subscript/superscript handled in post-processing
-      commandWithArgsParser,
-      symbolCommandParser,
-      bracedGroupParser,
-      digitParser,
-      letterParser,
-      operatorParser,
-      subscriptMarker,
-      superscriptMarker,
+  map(
+    many(
+      choice<LatexNode>(
+        // Whitespace - skip or convert to space
+        map(regex(/\s+/), () => space()),
+        // Matrix environments like \begin{pmatrix}...\end{pmatrix}
+        matrixEnvironmentParser,
+        // Paired \left...\right delimiters
+        leftRightParser,
+        // Subscript/superscript handled in post-processing
+        commandWithArgsParser,
+        symbolCommandParser,
+        bracedGroupParser,
+        digitParser,
+        letterParser,
+        operatorParser,
+        subscriptMarker,
+        superscriptMarker,
+      ),
     ),
+    processSubSup,
   ),
 );
 
@@ -398,9 +450,9 @@ const bracedGroupParser: Parser<LatexNode> = map(
 /**
  * Parse a symbol command (no arguments).
  */
-const symbolCommandParser: Parser<LatexNode> = (input, position = 0) => {
+const symbolCommandParser: Parser<LatexNode> = (input, position = 0): ParseResult<LatexNode> => {
   const cmdResult = latexCommand(input, position);
-  if (!cmdResult.success) return cmdResult;
+  if (!cmdResult.success) return cmdResult as ParseFailure;
 
   const cmd = cmdResult.value;
 
@@ -434,9 +486,9 @@ const symbolCommandParser: Parser<LatexNode> = (input, position = 0) => {
 /**
  * Parse a command with arguments.
  */
-const commandWithArgsParser: Parser<LatexNode> = (input, position = 0) => {
+const commandWithArgsParser: Parser<LatexNode> = (input, position = 0): ParseResult<LatexNode> => {
   const cmdResult = latexCommand(input, position);
-  if (!cmdResult.success) return cmdResult;
+  if (!cmdResult.success) return cmdResult as ParseFailure;
 
   const cmd = cmdResult.value;
   const cmdDef = COMMAND_DEFS[cmd];
@@ -601,8 +653,9 @@ function processSubSup(nodes: LatexNode[]): LatexNode[] {
 export function parseLatex(input: string): LatexNode[] {
   const result = latexContent(input.trim());
   if (!result.success) {
+    const failure = result as ParseFailure;
     throw new Error(
-      `Parse error at position ${result.position}: expected ${result.expected}`,
+      `Parse error at position ${failure.position}: expected ${failure.expected}`,
     );
   }
 

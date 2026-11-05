@@ -8,9 +8,9 @@
 /**
  * Result of a parse attempt.
  */
-export type ParseResult<T> =
-  | { success: true; value: T; remaining: string }
-  | { success: false; expected: string; position: number };
+export type ParseSuccess<T> = { success: true; value: T; remaining: string };
+export type ParseFailure = { success: false; expected: string; position: number };
+export type ParseResult<T> = ParseSuccess<T> | ParseFailure;
 
 /**
  * A parser is a function that takes a string and returns a result.
@@ -21,7 +21,7 @@ export type Parser<T> = (input: string, position?: number) => ParseResult<T>;
  * Create a parser that always succeeds with the given value.
  */
 export function succeed<T>(value: T): Parser<T> {
-  return (input, position = 0) => ({
+  return (input, _position = 0) => ({
     success: true,
     value,
     remaining: input,
@@ -32,7 +32,7 @@ export function succeed<T>(value: T): Parser<T> {
  * Create a parser that always fails with the given message.
  */
 export function fail<T>(expected: string): Parser<T> {
-  return (input, position = 0) => ({
+  return (_input, position = 0) => ({
     success: false,
     expected,
     position,
@@ -138,16 +138,14 @@ export const optionalWhitespace: Parser<string> = regex(/\s*/, "whitespace");
  * Map the result of a parser.
  */
 export function map<T, U>(parser: Parser<T>, fn: (value: T) => U): Parser<U> {
-  return (input, position = 0) => {
+  return (input, position = 0): ParseResult<U> => {
     const result = parser(input, position);
-    if (result.success) {
-      return {
-        success: true,
-        value: fn(result.value),
-        remaining: result.remaining,
-      };
-    }
-    return result;
+    if (!result.success) return result as ParseFailure;
+    return {
+      success: true,
+      value: fn(result.value),
+      remaining: result.remaining,
+    };
   };
 }
 
@@ -155,15 +153,15 @@ export function map<T, U>(parser: Parser<T>, fn: (value: T) => U): Parser<U> {
  * Sequence two parsers, keeping both results.
  */
 export function seq<T, U>(p1: Parser<T>, p2: Parser<U>): Parser<[T, U]> {
-  return (input, position = 0) => {
+  return (input, position = 0): ParseResult<[T, U]> => {
     const r1 = p1(input, position);
-    if (!r1.success) return r1;
+    if (!r1.success) return r1 as ParseFailure;
 
     const r2 = p2(
       r1.remaining,
       position + (input.length - r1.remaining.length),
     );
-    if (!r2.success) return r2;
+    if (!r2.success) return r2 as ParseFailure;
 
     return {
       success: true,
@@ -381,12 +379,13 @@ export function bracketGroup<T>(contentParser: Parser<T>): Parser<T> {
  */
 export function parse<T>(parser: Parser<T>, input: string): T {
   const result = parser(input);
-  if (result.success) {
-    return result.value;
+  if (!result.success) {
+    const failure = result as ParseFailure;
+    throw new Error(
+      `Parse error at position ${failure.position}: expected ${failure.expected}`,
+    );
   }
-  throw new Error(
-    `Parse error at position ${result.position}: expected ${result.expected}`,
-  );
+  return result.value;
 }
 
 /**

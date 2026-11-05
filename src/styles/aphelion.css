@@ -12,11 +12,11 @@
 .aphelion-container {
   display: inline-block;
   position: relative;
-  font-family: "Times New Roman", Symbola, serif;
-  font-size: 1em;
-  line-height: 1;
+  font-family: inherit;
+  font-size: inherit;
+  line-height: 1.25;
   vertical-align: middle;
-  color: #333;
+  color: inherit;
 }
 
 /* Dark mode support */
@@ -73,25 +73,21 @@
   vertical-align: middle;
 }
 
-.aphelion-root-block {
-  display: inline-block;
-  position: relative;
-  white-space: nowrap;
-}
-
+.aphelion-root-block,
 .aphelion-inner-block {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
   position: relative;
   white-space: nowrap;
 }
 
 .aphelion-empty {
-  min-width: 0.6em;
+  min-width: 0.25em;
   min-height: 1em;
-  background: rgba(100, 150, 220, 0.15);
-  border: 1px solid rgba(100, 150, 220, 0.4);
-  border-radius: 2px;
-  margin: 0 1px;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  margin: 0;
 }
 
 /* ============================================
@@ -101,11 +97,13 @@
 .aphelion-cursor {
   display: inline-block;
   width: 0;
-  height: 1.2em;
-  margin-left: -1px;
-  margin-right: -1px;
-  border-left: 2px solid #333;
-  vertical-align: text-bottom;
+  height: 0.95em;
+  margin-left: 0;
+  margin-right: -1.5px;
+  border-left: 1.5px solid currentColor;
+  vertical-align: -0.16em;
+  line-height: 1;
+  pointer-events: none;
 }
 
 .aphelion-cursor.aphelion-blink {
@@ -115,11 +113,11 @@
 @keyframes aphelion-blink {
   0%,
   50% {
-    border-color: #333;
+    opacity: 1;
   }
   50.01%,
   100% {
-    border-color: transparent;
+    opacity: 0;
   }
 }
 
@@ -247,20 +245,31 @@
 
 .aphelion-sqrt {
   display: inline-flex;
-  align-items: baseline;
-  vertical-align: baseline;
+  align-items: stretch;
+  align-self: center;
+  vertical-align: middle;
   position: relative;
   white-space: nowrap;
+  line-height: 1;
 }
 
 .aphelion-sqrt-prefix {
-  font-size: 1.15em;
-  line-height: 1;
-  display: inline-block;
-  vertical-align: bottom;
-  transform-origin: bottom center;
   position: relative;
-  top: 0.1em;
+  width: 0.82em;
+  flex-shrink: 0;
+  margin-right: -1px;
+  pointer-events: none;
+  user-select: none;
+}
+
+.aphelion-sqrt-svg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  display: block;
 }
 
 .aphelion-sqrt-stem {
@@ -268,25 +277,35 @@
 }
 
 .aphelion-sqrt-content {
-  display: inline-block;
-  padding: 0.1em 0.15em 0 0;
-  border-top: 1px solid currentColor;
+  display: inline-flex;
+  align-items: center;
+  padding: 0.08em 0.2em 0.135em 0.1em;
+  border-top: 1.6px solid currentColor;
   min-width: 0.6em;
-  min-height: 1em;
-  vertical-align: baseline;
+  min-height: 1.05em;
+  box-sizing: border-box;
 }
 
 .aphelion-nthroot {
   display: inline-flex;
-  align-items: baseline;
+  align-items: flex-end;
   white-space: nowrap;
+  position: relative;
+}
+
+.aphelion-nthroot-index-wrapper {
+  display: inline-flex;
+  align-items: flex-start;
+  margin-right: -0.42em;
+  margin-bottom: 0.45em;
+  z-index: 2;
+  position: relative;
 }
 
 .aphelion-nthroot-index {
-  font-size: 0.6em;
-  margin-right: -0.3em;
-  margin-bottom: 0.5em;
-  vertical-align: super;
+  font-size: 0.62em;
+  line-height: 1;
+  vertical-align: baseline;
 }
 
 /* ============================================
@@ -436,12 +455,31 @@
 
 .aphelion-bracket-open,
 .aphelion-bracket-close {
-  font-size: 1.2em;
+  font-size: 1.05em;
+  line-height: 1;
+  display: inline-block;
   transform-origin: center;
 }
 
 .aphelion-bracket-content {
+  display: inline-flex;
+  align-items: center;
   padding: 0 0.1em;
+  min-width: 0.15em;
+  border: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+.aphelion-bracket-content .aphelion-placeholder,
+.aphelion-bracket-content .aphelion-inner-block,
+.aphelion-bracket-content.aphelion-empty,
+.aphelion-bracket-content .aphelion-empty {
+  border: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  outline: none !important;
 }
 
 .aphelion-scaled {
@@ -569,7 +607,13 @@
 .aphelion-operator-name {
   font-style: normal;
   font-family: inherit;
-  padding: 0 0.2em;
+  padding: 0 0.04em 0 0.08em;
+}
+
+.aphelion-operator-name + .aphelion-bracket,
+.aphelion-operator-name:has(+ .aphelion-bracket) {
+  padding-right: 0.01em;
+  margin-left: 0;
 }
 
 /* ============================================
@@ -630,25 +674,35 @@
    ============================================ */
 
 .aphelion-large-operator {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   vertical-align: middle;
 }
 
 .aphelion-operator-symbol {
   font-size: 1.5em;
   line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .aphelion-limits-container {
   display: inline-flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
 }
 
 .aphelion-upper-limit,
 .aphelion-lower-limit {
   font-size: 0.65em;
   line-height: 1.2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 1.2em;
 }
 
 .aphelion-inline-limits {
@@ -662,13 +716,86 @@
    ============================================ */
 
 .aphelion-placeholder {
-  display: inline-block;
-  width: 0.6em;
-  height: 0.9em;
-  background: rgba(100, 150, 220, 0.15);
-  border: 1px dashed rgba(100, 150, 220, 0.5);
-  border-radius: 2px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0.65em;
+  height: 1.05em;
+  padding: 0 2px;
+  background: transparent;
+  border: 1px dashed #666666;
+  border-radius: 1px;
   vertical-align: middle;
+  box-sizing: border-box;
+  margin: 0 1px;
+}
+
+.aphelion-placeholder.aphelion-placeholder-active {
+  border: 1.2px solid #333333;
+  background: transparent;
+}
+
+/* ============================================
+   Structured CAS Templates
+   ============================================ */
+
+.aphelion-derivative,
+.aphelion-integral-template,
+.aphelion-sumprod-template,
+.aphelion-limit-template,
+.aphelion-logbase,
+.aphelion-dms,
+.aphelion-base-supsub {
+  display: inline-flex;
+  align-items: center;
+  vertical-align: middle;
+  gap: 0.08em;
+}
+
+.aphelion-derivative-denom,
+.aphelion-sumprod-lower {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.aphelion-derivative-d,
+.aphelion-integral-d {
+  font-style: italic;
+  margin-right: 0.05em;
+}
+
+.aphelion-integral-diff {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 0.18em;
+}
+
+.aphelion-integral-symbol {
+  font-size: 1.65em;
+  line-height: 1;
+}
+
+.aphelion-sumprod-eq,
+.aphelion-limit-arrow {
+  padding: 0 0.1em;
+}
+
+.aphelion-dms-unit {
+  font-size: 0.85em;
+  line-height: 1;
+  align-self: flex-start;
+  margin-top: -0.15em;
+  margin-right: 0.12em;
+}
+
+.aphelion-matrix[data-type="cases"] .aphelion-matrix-row {
+  justify-content: flex-start;
+  gap: 0.6em;
+}
+
+.aphelion-matrix[data-type="cases"] .aphelion-matrix-cell {
+  text-align: left;
 }
 
 /* ============================================
@@ -724,95 +851,22 @@
 }
 
 /* ============================================
-   Dark Mode Support
+   Dark Mode Support (Opt-in via .aphelion-auto-dark)
    ============================================ */
 
 @media (prefers-color-scheme: dark) {
-  .aphelion-container {
+  .aphelion-container.aphelion-auto-dark {
     color: #e0e0e0;
   }
 
-  .aphelion-math-field {
+  .aphelion-container.aphelion-auto-dark .aphelion-math-field {
     background: #2d2d2d;
     color: #e0e0e0;
     border-color: #555;
   }
 
-  .aphelion-math-field:hover {
-    border-color: #777;
-  }
-
-  .aphelion-math-field.aphelion-focused,
-  .aphelion-container.aphelion-focused .aphelion-math-field {
-    border-color: #5fa3e0;
-    box-shadow: 0 0 0 3px rgba(95, 163, 224, 0.25);
-  }
-
-  .aphelion-cursor {
-    border-color: #e0e0e0;
-  }
-
-  .aphelion-cursor.aphelion-blink {
-    animation-name: aphelion-blink-dark;
-  }
-
-  @keyframes aphelion-blink-dark {
-    0%,
-    50% {
-      border-color: #e0e0e0;
-    }
-    50.01%,
-    100% {
-      border-color: transparent;
-    }
-  }
-
-  .aphelion-selection {
+  .aphelion-container.aphelion-auto-dark .aphelion-selection {
     background-color: #3a5d8a;
-  }
-
-  .aphelion-placeholder {
-    background: rgba(100, 150, 220, 0.25);
-    border-color: rgba(100, 150, 220, 0.5);
-  }
-
-  .aphelion-empty {
-    background: rgba(100, 150, 220, 0.25);
-    border-color: rgba(100, 150, 220, 0.5);
-  }
-
-  .aphelion-non-leaf:hover {
-    background-color: rgba(255, 255, 255, 0.05);
-  }
-
-  .aphelion-toolbar {
-    background: #3d3d3d;
-    border-color: #555;
-  }
-
-  .aphelion-toolbar-button {
-    background: #4d4d4d;
-    border-color: #666;
-    color: #e0e0e0;
-  }
-
-  .aphelion-toolbar-button:hover {
-    background-color: #5d5d5d;
-    border-color: #777;
-  }
-
-  .aphelion-latex-command-input {
-    border-color: #b366cc;
-    background: rgba(153, 0, 204, 0.15);
-  }
-
-  .aphelion-latex-command-input.aphelion-hasCursor {
-    border-color: #5fa3e0;
-    background: rgba(95, 163, 224, 0.15);
-  }
-
-  .aphelion-latex-command-backslash {
-    color: #b366cc;
   }
 }
 

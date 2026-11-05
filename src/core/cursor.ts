@@ -8,7 +8,8 @@
 import { NodeBase, NodeFragment } from "./node";
 import { MathBlock, RootBlock } from "./blocks";
 import { DirectionType, L, R, otherDir, EditorConfig } from "./types";
-import { MathSymbol } from "../commands/symbol";
+import { MathSymbol, createSymbolFromChar } from "../commands/symbol";
+import { OperatorName } from "../commands/text";
 
 // Forward declaration for matrix cell detection
 interface MatrixCellLike extends MathBlock {
@@ -98,9 +99,6 @@ export class Cursor {
   /** DOM element for the cursor */
   private _domElement?: HTMLElement;
 
-  /** Whether the cursor should blink */
-  private _blinkInterval?: ReturnType<typeof setInterval>;
-
   /** Options/config reference */
   options: EditorConfig;
 
@@ -138,6 +136,11 @@ export class Cursor {
     const wasBlinking = this.domElement.classList.contains("aphelion-blink");
     this.domElement.classList.remove("aphelion-blink");
 
+    // Remove active highlight from previous placeholder if any
+    this.domElement.parentElement?.classList.remove(
+      "aphelion-placeholder-active",
+    );
+
     // Remove from previous position
     this.domElement.remove();
 
@@ -147,7 +150,15 @@ export class Cursor {
     } else if (this[L]) {
       this[L]!.domElement.after(this.domElement);
     } else {
-      this.parent.domElement.prepend(this.domElement);
+      const placeholder = this.parent.domElement.querySelector(
+        ":scope > .aphelion-placeholder",
+      ) as HTMLElement | null;
+      if (placeholder) {
+        placeholder.classList.add("aphelion-placeholder-active");
+        placeholder.appendChild(this.domElement);
+      } else {
+        this.parent.domElement.prepend(this.domElement);
+      }
     }
 
     // Restore blink state after a brief delay to restart animation
@@ -165,6 +176,9 @@ export class Cursor {
    * Hide the cursor.
    */
   hide(): this {
+    this.domElement.parentElement?.classList.remove(
+      "aphelion-placeholder-active",
+    );
     this.domElement.remove();
     this.stopBlink();
     return this;
@@ -282,7 +296,8 @@ export class Cursor {
 
     if (!grandparent) {
       // At root, can't move out
-      // TODO: Call moveOutOf handler
+      const ctrl = (this.parent.root() as RootBlock).controller;
+      this.options.handlers?.moveOutOf?.(dir, ctrl);
       return false;
     }
 
@@ -297,6 +312,20 @@ export class Cursor {
       return true;
     }
 
+    // Check if there is an adjacent sibling block to step into
+    const adjacentBlock = parent[dir];
+    if (
+      adjacentBlock instanceof MathBlock &&
+      (grandparent.horizontalBlockNav || adjacentBlock.isEmpty())
+    ) {
+      const enterSide = otherDir(dir);
+      this.parent = adjacentBlock;
+      this[dir] = adjacentBlock.ends[enterSide];
+      this[enterSide] = undefined;
+      this.show();
+      return true;
+    }
+
     // Grandparent is a node like Fraction - we need to go to its parent
     const greatGrandparent = grandparent.parent;
     if (!greatGrandparent || !(greatGrandparent instanceof MathBlock)) {
@@ -304,7 +333,6 @@ export class Cursor {
     }
 
     // Position cursor relative to the grandparent node in its container
-    const other = otherDir(dir);
     if (dir === R) {
       // Moving right - position cursor after grandparent
       this[L] = grandparent;
@@ -361,19 +389,23 @@ export class Cursor {
           this.show();
           return true;
         }
-        // At top row, continue searching up
+        // At top row, jump out to matrix's parent block
+        currentBlock =
+          blockParent.parent instanceof MathBlock
+            ? blockParent.parent
+            : undefined;
+        continue;
       }
 
-      // Check if we're in a denominator/lower block of a two-block structure
-      // (fraction, supsub where ends[L] !== ends[R])
+      const anyParent = blockParent as unknown as Record<string, unknown>;
+
+      // Handle structured templates with upper/lower limits
       if (
-        blockParent.ends[L] instanceof MathBlock &&
-        blockParent.ends[R] instanceof MathBlock &&
-        blockParent.ends[L] !== blockParent.ends[R] &&
-        blockParent.ends[R] === currentBlock
+        anyParent.upper instanceof MathBlock &&
+        (currentBlock === anyParent.lower ||
+          currentBlock === anyParent.variable)
       ) {
-        // We're in the right/lower block, move to left/upper
-        const upperBlock = blockParent.ends[L] as MathBlock;
+        const upperBlock = anyParent.upper;
         this.parent = upperBlock;
         this[L] = upperBlock.ends[R];
         this[R] = undefined;
@@ -381,14 +413,73 @@ export class Cursor {
         return true;
       }
 
-      // Check if we're in a subscript - try to find superscript (sibling block)
-      if (currentBlock[L] instanceof MathBlock) {
-        const upperBlock = currentBlock[L] as MathBlock;
-        this.parent = upperBlock;
-        this[L] = upperBlock.ends[R];
+      // Handle BaseSuperscript / BaseSubscript
+      if (
+        anyParent.base instanceof MathBlock &&
+        anyParent.sup instanceof MathBlock &&
+        currentBlock === anyParent.base
+      ) {
+        const supBlock = anyParent.sup;
+        this.parent = supBlock;
+        this[L] = supBlock.ends[R];
         this[R] = undefined;
         this.show();
         return true;
+      }
+      if (
+        anyParent.base instanceof MathBlock &&
+        anyParent.sub instanceof MathBlock &&
+        currentBlock === anyParent.sub
+      ) {
+        const baseBlock = anyParent.base;
+        this.parent = baseBlock;
+        this[L] = baseBlock.ends[R];
+        this[R] = undefined;
+        this.show();
+        return true;
+      }
+
+      // Handle standalone Subscript -> exit to parent block on Up
+      if (
+        anyParent.sub instanceof MathBlock &&
+        !(anyParent.sup instanceof MathBlock) &&
+        !(anyParent.base instanceof MathBlock) &&
+        currentBlock === anyParent.sub &&
+        blockParent.parent instanceof MathBlock
+      ) {
+        this.parent = blockParent.parent;
+        this[L] = blockParent;
+        this[R] = blockParent[R];
+        this.show();
+        return true;
+      }
+
+      if (!blockParent.horizontalBlockNav) {
+        // Check if we're in a denominator/lower block of a two-block vertical structure
+        // (fraction, binom, supsub, largeop where ends[L] !== ends[R])
+        if (
+          blockParent.ends[L] instanceof MathBlock &&
+          blockParent.ends[R] instanceof MathBlock &&
+          blockParent.ends[L] !== blockParent.ends[R] &&
+          blockParent.ends[R] === currentBlock
+        ) {
+          const upperBlock = blockParent.ends[L] as MathBlock;
+          this.parent = upperBlock;
+          this[L] = upperBlock.ends[R];
+          this[R] = undefined;
+          this.show();
+          return true;
+        }
+
+        // Check if we're in a subscript - try to find superscript (sibling block)
+        if (currentBlock[L] instanceof MathBlock) {
+          const upperBlock = currentBlock[L] as MathBlock;
+          this.parent = upperBlock;
+          this[L] = upperBlock.ends[R];
+          this[R] = undefined;
+          this.show();
+          return true;
+        }
       }
 
       // Move up to the parent's container block and continue searching
@@ -399,8 +490,23 @@ export class Cursor {
       }
     }
 
-    // No navigable structure found, try to move out
-    return this.moveOut(L);
+    // If adjacent to a node with a superscript (e.g. x_{a}^{b}), enter its superscript
+    const leftNeighbor = this[L] as unknown as
+      | Record<string, unknown>
+      | undefined;
+    if (leftNeighbor && leftNeighbor.sup instanceof MathBlock) {
+      const supBlock = leftNeighbor.sup;
+      this.parent = supBlock;
+      this[L] = supBlock.ends[R];
+      this[R] = undefined;
+      this.show();
+      return true;
+    }
+
+    // At root with no vertical target: trigger upOutOf handler
+    const ctrl = (this.parent.root() as RootBlock).controller;
+    this.options.handlers?.upOutOf?.(ctrl);
+    return false;
   }
 
   /**
@@ -431,34 +537,102 @@ export class Cursor {
           this.show();
           return true;
         }
-        // At bottom row, continue searching up
+        // At bottom row, jump out to matrix's parent block
+        currentBlock =
+          blockParent.parent instanceof MathBlock
+            ? blockParent.parent
+            : undefined;
+        continue;
       }
 
-      // Check if we're in a numerator/upper block of a two-block structure
-      // (fraction, supsub where ends[L] !== ends[R])
+      const anyParent = blockParent as unknown as Record<string, unknown>;
+
+      // Handle structured templates with upper/lower limits
       if (
-        blockParent.ends[L] instanceof MathBlock &&
-        blockParent.ends[R] instanceof MathBlock &&
-        blockParent.ends[L] !== blockParent.ends[R] &&
-        blockParent.ends[L] === currentBlock
+        anyParent.upper instanceof MathBlock &&
+        currentBlock === anyParent.upper
       ) {
-        // We're in the left/upper block, move to right/lower
-        const lowerBlock = blockParent.ends[R] as MathBlock;
-        this.parent = lowerBlock;
+        const lowerTarget =
+          (anyParent.variable instanceof MathBlock
+            ? anyParent.variable
+            : undefined) ??
+          (anyParent.lower instanceof MathBlock ? anyParent.lower : undefined);
+        if (lowerTarget) {
+          this.parent = lowerTarget;
+          this[L] = undefined;
+          this[R] = lowerTarget.ends[L];
+          this.show();
+          return true;
+        }
+      }
+
+      // Handle BaseSuperscript / BaseSubscript
+      if (
+        anyParent.base instanceof MathBlock &&
+        anyParent.sup instanceof MathBlock &&
+        currentBlock === anyParent.sup
+      ) {
+        const baseBlock = anyParent.base;
+        this.parent = baseBlock;
+        this[L] = baseBlock.ends[R];
+        this[R] = undefined;
+        this.show();
+        return true;
+      }
+      if (
+        anyParent.base instanceof MathBlock &&
+        anyParent.sub instanceof MathBlock &&
+        currentBlock === anyParent.base
+      ) {
+        const subBlock = anyParent.sub;
+        this.parent = subBlock;
         this[L] = undefined;
-        this[R] = lowerBlock.ends[L];
+        this[R] = subBlock.ends[L];
         this.show();
         return true;
       }
 
-      // Check if we're in a superscript - try to find subscript (sibling block)
-      if (currentBlock[R] instanceof MathBlock) {
-        const lowerBlock = currentBlock[R] as MathBlock;
-        this.parent = lowerBlock;
-        this[L] = undefined;
-        this[R] = lowerBlock.ends[L];
+      // Handle standalone Superscript -> exit to parent block on Down
+      if (
+        anyParent.sup instanceof MathBlock &&
+        !(anyParent.sub instanceof MathBlock) &&
+        !(anyParent.base instanceof MathBlock) &&
+        currentBlock === anyParent.sup &&
+        blockParent.parent instanceof MathBlock
+      ) {
+        this.parent = blockParent.parent;
+        this[L] = blockParent;
+        this[R] = blockParent[R];
         this.show();
         return true;
+      }
+
+      if (!blockParent.horizontalBlockNav) {
+        // Check if we're in a numerator/upper block of a two-block vertical structure
+        // (fraction, binom, supsub, largeop where ends[L] !== ends[R])
+        if (
+          blockParent.ends[L] instanceof MathBlock &&
+          blockParent.ends[R] instanceof MathBlock &&
+          blockParent.ends[L] !== blockParent.ends[R] &&
+          blockParent.ends[L] === currentBlock
+        ) {
+          const lowerBlock = blockParent.ends[R] as MathBlock;
+          this.parent = lowerBlock;
+          this[L] = undefined;
+          this[R] = lowerBlock.ends[L];
+          this.show();
+          return true;
+        }
+
+        // Check if we're in a superscript - try to find subscript (sibling block)
+        if (currentBlock[R] instanceof MathBlock) {
+          const lowerBlock = currentBlock[R] as MathBlock;
+          this.parent = lowerBlock;
+          this[L] = undefined;
+          this[R] = lowerBlock.ends[L];
+          this.show();
+          return true;
+        }
       }
 
       // Move up to the parent's container block and continue searching
@@ -469,8 +643,91 @@ export class Cursor {
       }
     }
 
-    // No navigable structure found, try to move out
-    return this.moveOut(R);
+    // If adjacent to a node with a subscript (e.g. x_{a}^{b}), enter its subscript
+    const leftNeighbor = this[L] as unknown as
+      | Record<string, unknown>
+      | undefined;
+    if (leftNeighbor && leftNeighbor.sub instanceof MathBlock) {
+      const subBlock = leftNeighbor.sub;
+      this.parent = subBlock;
+      this[L] = subBlock.ends[R];
+      this[R] = undefined;
+      this.show();
+      return true;
+    }
+
+    // At root with no vertical target: trigger downOutOf handler
+    const ctrl = (this.parent.root() as RootBlock).controller;
+    this.options.handlers?.downOutOf?.(ctrl);
+    return false;
+  }
+
+  /**
+   * Navigate between template placeholder blocks using Tab / Shift+Tab.
+   */
+  tab(dir: DirectionType = R): boolean {
+    this.clearSelection();
+
+    // 1. If currently inside an InnerBlock, check sibling blocks on the same command node
+    let current: MathBlock = this.parent;
+    while (current && !(current instanceof RootBlock)) {
+      const siblingBlock = current[dir];
+      if (siblingBlock instanceof MathBlock) {
+        this.parent = siblingBlock;
+        this[L] = siblingBlock.ends[R];
+        this[R] = undefined;
+        this.show();
+        return true;
+      }
+
+      const cmdNode = current.parent;
+      if (!cmdNode) break;
+
+      // Also check if sibling commands in cmdNode.parent have InnerBlocks
+      let nextCmd = cmdNode[dir];
+      while (nextCmd) {
+        const block = this.findBlockChild(nextCmd, otherDir(dir));
+        if (block) {
+          this.parent = block;
+          this[L] = block.ends[R];
+          this[R] = undefined;
+          this.show();
+          return true;
+        }
+        nextCmd = nextCmd[dir];
+      }
+
+      // If tabbing forward out of the last block of a command, step right after the command
+      if (dir === R && cmdNode.parent instanceof MathBlock) {
+        this.parent = cmdNode.parent;
+        this[L] = cmdNode;
+        this[R] = cmdNode[R];
+        this.show();
+        return true;
+      }
+
+      if (cmdNode.parent instanceof MathBlock) {
+        current = cmdNode.parent;
+      } else {
+        break;
+      }
+    }
+
+    // 2. If in RootBlock, find the next InnerBlock in direction `dir` (or first empty InnerBlock)
+    let node = this[dir] ?? this.parent.ends[otherDir(dir)];
+    while (node) {
+      const block = this.findBlockChild(node, otherDir(dir));
+      if (block) {
+        this.parent = block;
+        this[L] = block.ends[R];
+        this[R] = undefined;
+        this.show();
+        return true;
+      }
+      node = node[dir];
+    }
+
+    return false;
   }
 
   /**
@@ -599,10 +856,24 @@ export class Cursor {
 
     if (!grandparent) {
       // At root, can't extend out
+      const ctrl = (this.parent.root() as RootBlock).controller;
+      this.options.handlers?.selectOutOf?.(dir, ctrl);
       return false;
     }
 
-    // TODO: Handle extending selection across block boundaries
+    const greatGrandparent = grandparent.parent;
+    if (greatGrandparent instanceof MathBlock) {
+      this.clearSelection();
+      this.parent = greatGrandparent;
+      this.selection = new Selection(grandparent, grandparent, dir);
+      const other = otherDir(dir);
+      this[other] = grandparent;
+      this[dir] = grandparent[dir];
+      this.updateSelectionHighlight();
+      this.show();
+      return true;
+    }
+
     return false;
   }
 
@@ -610,6 +881,8 @@ export class Cursor {
    * Select all content in the entire editor (root block).
    */
   selectAll(): this {
+    this.clearSelection();
+
     // Navigate to the root block first
     let root = this.parent;
     while (root.parent instanceof MathBlock) {
@@ -633,10 +906,16 @@ export class Cursor {
     const lastChild = root.ends[R];
 
     if (firstChild && lastChild) {
+      this._anticursor = {
+        parent: root,
+        [L]: undefined,
+        [R]: firstChild,
+      };
       this.selection = new Selection(firstChild, lastChild, R);
       this[L] = lastChild;
       this[R] = undefined;
       this.updateSelectionHighlight();
+      this.show();
     }
 
     return this;
@@ -694,6 +973,18 @@ export class Cursor {
     // Move cursor past the inserted node
     this[L] = node;
 
+    // Remove empty placeholder if present in parent block
+    const placeholder = this.parent.domElement.querySelector(
+      ":scope > .aphelion-placeholder",
+    );
+    if (placeholder) {
+      if (placeholder.contains(this.domElement)) {
+        this.parent.domElement.prepend(this.domElement);
+      }
+      placeholder.remove();
+    }
+    this.parent.domElement.classList.remove("aphelion-empty");
+
     node.onInsert();
     this.show();
 
@@ -731,6 +1022,62 @@ export class Cursor {
         this.show();
         return undefined;
       }
+    }
+
+    // Check for operator unpack on backspace/delete
+    if (nodeToDelete instanceof OperatorName) {
+      const name = nodeToDelete.name;
+      const parent = nodeToDelete.parent;
+      const leftSib = nodeToDelete[L];
+      const rightSib = nodeToDelete[R];
+
+      nodeToDelete.onRemove();
+      nodeToDelete.remove();
+
+      if (parent) {
+        const remainingChars = (dir === L ? name.slice(0, -1) : name.slice(1)).split("");
+        if (remainingChars.length > 0) {
+          let prev: NodeBase | undefined = leftSib;
+          let lastInserted: NodeBase | undefined;
+          let firstInserted: NodeBase | undefined;
+
+          for (const ch of remainingChars) {
+            const sym = createSymbolFromChar(ch);
+            sym.parent = parent;
+            sym[L] = prev;
+            if (prev) {
+              prev[R] = sym;
+            } else {
+              parent.ends[L] = sym;
+            }
+            if (!firstInserted) firstInserted = sym;
+            lastInserted = sym;
+            prev = sym;
+            sym.onInsert();
+          }
+
+          if (lastInserted) {
+            lastInserted[R] = rightSib;
+          }
+          if (rightSib) {
+            rightSib[L] = lastInserted;
+          } else if (lastInserted) {
+            parent.ends[R] = lastInserted;
+          }
+
+          if (dir === L) {
+            this[L] = lastInserted;
+            this[R] = rightSib;
+          } else {
+            this[L] = leftSib;
+            this[R] = firstInserted;
+          }
+
+          this.show();
+          return undefined;
+        }
+      }
+      return nodeToDelete;
     }
 
     // Check for symbol degradation (e.g., ≤ → < before deleting)
@@ -805,6 +1152,8 @@ export class Cursor {
 
     // Can't delete out of root
     if (!grandparent || parent instanceof RootBlock) {
+      const ctrl = (this.parent.root() as RootBlock).controller;
+      this.options.handlers?.deleteOutOf?.(dir, ctrl);
       return undefined;
     }
 
@@ -820,7 +1169,18 @@ export class Cursor {
       );
 
       if (hasContentInSiblings) {
-        // Don't delete - just move out of the empty block
+        // Don't delete - if there's an adjacent block in direction `dir`, move into it
+        const adjacentBlock = parent[dir];
+        if (adjacentBlock instanceof MathBlock) {
+          const enterSide = otherDir(dir);
+          this.parent = adjacentBlock;
+          this[dir] = adjacentBlock.ends[enterSide];
+          this[enterSide] = undefined;
+          this.show();
+          return undefined;
+        }
+
+        // Otherwise move out of the empty block
         const greatGrandparent = grandparent.parent;
         if (greatGrandparent instanceof MathBlock) {
           if (dir === L) {
@@ -964,6 +1324,16 @@ export class Cursor {
       anyGrandparent.content !== currentBlock
     ) {
       siblings.push(anyGrandparent.content);
+    }
+
+    for (const child of grandparent.children()) {
+      if (
+        child instanceof MathBlock &&
+        child !== currentBlock &&
+        !siblings.includes(child)
+      ) {
+        siblings.push(child);
+      }
     }
 
     return siblings;

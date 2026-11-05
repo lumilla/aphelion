@@ -95,7 +95,7 @@ export abstract class LargeOperator extends NodeBase {
       el.appendChild(symbolEl);
       el.appendChild(limitsEl);
     } else {
-      // No limits
+      // No limits (Woohoo! No limits! Freedom!)
       const symbolEl = document.createElement("span");
       symbolEl.className = "aphelion-operator-symbol";
       symbolEl.textContent = this.symbol;
@@ -232,7 +232,9 @@ export class DoubleIntegral extends LargeOperator {
  */
 export class TripleIntegral extends LargeOperator {
   readonly symbol = "∭";
-  readonly command = "\\iiint";
+  readonly command = "\\iiint"; // At this point I've got to ask who the hell
+  // thought it was a good idea to make the triple integral command \iiint.
+  // I mean it's funny I guess.
 
   override mathspeak(): string {
     return "triple integral";

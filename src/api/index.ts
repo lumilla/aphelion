@@ -5,7 +5,7 @@
  */
 
 import { Controller } from "../controller/controller";
-import { EditorConfig, EditorHandlers } from "../core/types";
+import { EditorConfig, EditorHandlers, L } from "../core/types";
 
 /**
  * Aphelion API interface.
@@ -57,6 +57,12 @@ export interface AphelionConfig {
 
   /** Space behavior */
   spaceBehavesLikeTab?: boolean;
+
+  /** Font family for the math field */
+  fontFamily?: string;
+
+  /** Font size for the math field */
+  fontSize?: string | number;
 
   /** Left-right behavior */
   leftRightIntoCmdGoes?: "up" | "down";
@@ -209,10 +215,18 @@ function createMathFieldInstance(
     cmd: (command: string) => {
       switch (command) {
         case "\\frac":
+        case "\\dfrac":
+        case "\\tfrac":
           controller.insertFraction();
+          break;
+        case "/":
+          controller.insertSlashFraction();
           break;
         case "\\sqrt":
           controller.insertSquareRoot();
+          break;
+        case "\\nthroot":
+          controller.insertNthRoot();
           break;
         case "^":
           controller.insertSuperscript();
@@ -223,11 +237,54 @@ function createMathFieldInstance(
         case "(":
           controller.insertParentheses();
           break;
+        case ")":
+          controller.closeBracket(")");
+          break;
         case "[":
           controller.insertSquareBrackets();
           break;
+        case "]":
+          controller.closeBracket("]");
+          break;
         case "{":
           controller.insertCurlyBraces();
+          break;
+        case "}":
+          controller.closeBracket("}");
+          break;
+        case "|":
+        case "\\abs":
+          controller.insertAbsoluteValue();
+          break;
+        case "\\deriv":
+          controller.insertDerivative(1);
+          break;
+        case "\\deriv2":
+          controller.insertDerivative(2);
+          break;
+        case "\\derivN":
+          controller.insertDerivative("n");
+          break;
+        case "\\int":
+          controller.insertIntegralTemplate(true);
+          break;
+        case "\\intIndef":
+          controller.insertIntegralTemplate(false);
+          break;
+        case "\\sum":
+          controller.insertSumProductTemplate("sum");
+          break;
+        case "\\prod":
+          controller.insertSumProductTemplate("prod");
+          break;
+        case "\\lim":
+          controller.insertLimitTemplate();
+          break;
+        case "\\logbase":
+          controller.insertLogBase();
+          break;
+        case "\\dms":
+          controller.insertDMS();
           break;
         // Text mode commands
         case "\\text":
@@ -304,8 +361,7 @@ function createMathFieldInstance(
     ignoreNextMousedown: () => instance,
 
     clickAt: (x: number, y: number, target?: HTMLElement) => {
-      // Simulate click at position
-      controller.focus();
+      controller.clickAt(x, y, target);
       return instance;
     },
   };
@@ -320,7 +376,7 @@ function createStaticMathInstance(
   controller: Controller,
   element: HTMLElement,
 ): StaticMathInstance {
-  return {
+  const instance: StaticMathInstance = {
     el: () => element,
 
     latex: ((value?: string) => {
@@ -328,30 +384,77 @@ function createStaticMathInstance(
         return controller.latex();
       }
       controller.setLatex(value);
-      return createStaticMathInstance(controller, element);
+      return instance;
     }) as StaticMathInstance["latex"],
 
     html: () => controller.root.domElement.innerHTML,
 
     reflow: () => {
       controller.root.postOrder((node) => node.reflow());
-      return createStaticMathInstance(controller, element);
+      return instance;
     },
   };
+  return instance;
 }
 
 /**
  * Convert legacy config to modern config.
  */
-function convertConfig(config: AphelionConfig): EditorConfig {
+function convertConfig(
+  config: AphelionConfig,
+  getInstance?: () => MathFieldInstance,
+): EditorConfig {
   const handlers: EditorHandlers = {};
 
   if (config.handlers?.edit) {
-    handlers.edit = config.handlers.edit as EditorHandlers["edit"];
+    handlers.edit = (ctrl) => {
+      config.handlers?.edit?.((getInstance?.() ?? ctrl) as MathFieldInstance);
+    };
   }
 
   if (config.handlers?.enter) {
-    handlers.enter = config.handlers.enter as EditorHandlers["enter"];
+    handlers.enter = (ctrl) => {
+      config.handlers?.enter?.((getInstance?.() ?? ctrl) as MathFieldInstance);
+    };
+  }
+
+  if (config.handlers?.moveOutOf) {
+    handlers.moveOutOf = (dir) => {
+      config.handlers?.moveOutOf?.(
+        dir === L ? "left" : "right",
+        getInstance?.() as MathFieldInstance,
+      );
+    };
+  }
+
+  if (config.handlers?.selectOutOf) {
+    handlers.selectOutOf = (dir) => {
+      config.handlers?.selectOutOf?.(
+        dir === L ? "left" : "right",
+        getInstance?.() as MathFieldInstance,
+      );
+    };
+  }
+
+  if (config.handlers?.deleteOutOf) {
+    handlers.deleteOutOf = (dir) => {
+      config.handlers?.deleteOutOf?.(
+        dir === L ? "left" : "right",
+        getInstance?.() as MathFieldInstance,
+      );
+    };
+  }
+
+  if (config.handlers?.upOutOf) {
+    handlers.upOutOf = () => {
+      config.handlers?.upOutOf?.(getInstance?.() as MathFieldInstance);
+    };
+  }
+
+  if (config.handlers?.downOutOf) {
+    handlers.downOutOf = () => {
+      config.handlers?.downOutOf?.(getInstance?.() as MathFieldInstance);
+    };
   }
 
   return {
@@ -359,6 +462,8 @@ function convertConfig(config: AphelionConfig): EditorConfig {
     autoOperatorNames: config.autoOperatorNames,
     autoCommands: config.autoCommands,
     maxDepth: config.maxDepth,
+    fontSize: config.fontSize,
+    fontFamily: config.fontFamily,
     handlers,
   };
 }
@@ -389,11 +494,14 @@ export function getInterface(version: number = 3): AphelionAPI {
     }
 
     // Create controller and initialize
-    const controller = new Controller(config ? convertConfig(config) : {});
+    let instance: MathFieldInstance;
+    const controller = new Controller(
+      config ? convertConfig(config, () => instance) : {},
+    );
     controller.init(element);
 
     // Create instance
-    const instance = createMathFieldInstance(controller, element);
+    instance = createMathFieldInstance(controller, element);
     instances.set(element, instance);
 
     return instance;
@@ -401,7 +509,7 @@ export function getInterface(version: number = 3): AphelionAPI {
 
   api.StaticMath = (
     element: HTMLElement,
-    config?: AphelionStaticConfig,
+    _config?: AphelionStaticConfig,
   ): StaticMathInstance => {
     // Check if already initialized
     const existing = instances.get(element);

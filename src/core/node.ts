@@ -6,7 +6,6 @@
  */
 
 import {
-  Direction,
   DirectionType,
   Ends,
   L,
@@ -36,6 +35,9 @@ export abstract class NodeBase {
 
   /** Right sibling */
   [R]?: NodeBase;
+
+  /** Whether Left/Right arrows step directly between sibling inner blocks */
+  horizontalBlockNav = false;
 
   /** Associated DOM element for rendering */
   protected _domElement?: HTMLElement;

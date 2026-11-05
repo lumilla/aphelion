@@ -18,6 +18,10 @@ export * from "./commands/supsub";
 export * from "./commands/brackets";
 export * from "./commands/text";
 export * from "./commands/largeops";
+export * from "./commands/binom";
+export * from "./commands/matrix";
+export * from "./commands/accent";
+export * from "./commands/templates";
 
 // Parser exports
 export * from "./parser/combinators";
