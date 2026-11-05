@@ -686,8 +686,9 @@
 }
 
 .aphelion-operator-symbol {
-  font-size: 1.5em;
-  line-height: 1;
+  font-family: 'KaTeX_Size2', 'KaTeX_Main', serif;
+  font-size: 1.45em;
+  line-height: 0.9;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -703,11 +704,19 @@
 .aphelion-upper-limit,
 .aphelion-lower-limit {
   font-size: 0.65em;
-  line-height: 1.2;
+  line-height: 1.1;
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 1.2em;
+  min-height: 1.1em;
+}
+
+.aphelion-upper-limit {
+  margin-bottom: -0.15em;
+}
+
+.aphelion-lower-limit {
+  margin-top: -0.05em;
 }
 
 .aphelion-inline-limits {
